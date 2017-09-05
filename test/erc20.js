@@ -1,4 +1,4 @@
-var LoggedERC20 = artifacts.require("./LoggedERC20.sol");
+var ERC20 = artifacts.require("./ERC20.sol");
 var Utils = require("./utils");
 
 var BigNumber = require('bignumber.js');
@@ -12,11 +12,11 @@ var BigNumber = require('bignumber.js');
     - transfer from with enabled transfer
 */
 
-contract('LoggedERC20', function(accounts) {
+contract('ERC20', function(accounts) {
     it("deploy & check for total supply & balance of smart contract & sender", function() {
         var instance;
 
-        return LoggedERC20.new(
+        return ERC20.new(
             1000000,
             "TEST",
             18,
@@ -33,7 +33,7 @@ contract('LoggedERC20', function(accounts) {
     it("transfer with enabled lock", function() {
         var instance;
 
-        return LoggedERC20.new(
+        return ERC20.new(
                 1000000,
                 "TEST",
                 18,
@@ -57,7 +57,7 @@ contract('LoggedERC20', function(accounts) {
     it("transfer with disabled lock", function() {
         var instance;
 
-        return LoggedERC20.new(
+        return ERC20.new(
                 1000000,
                 "TEST",
                 18,

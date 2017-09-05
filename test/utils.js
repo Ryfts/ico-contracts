@@ -97,32 +97,6 @@ function getTxCost(result) {
 
     return result.receipt.gasUsed * tx.gasPrice;
 }
-function getBonusAmount(instance, amount) {
-    return new Promise(function (resolve, reject) {
-        var time = parseInt(new Date().getTime() / 1000);
-        var promise = instance.icoSince.call()
-            .then(function (value) {
-                return value.valueOf();
-            }).then(function (icoSince) {
-                if (time < icoSince) {
-                    bonus = 0;
-                }
-
-                if (time - icoSince <= 10800) {             // 3h since ico => reward 25%
-                    bonus = amount * 25 / 100;
-                }
-                else if (time - icoSince <= 21600) {        // 6h since ico => reward 15%
-                    bonus = amount * 15 / 100;
-                }
-                else if (time - icoSince <= 32400) {        // 9h since ico => reward 5%
-                    bonus = amount * 5 / 100;
-                } else {
-                    bonus = 0;
-                }
-                resolve(bonus);
-            });
-    });
-}
 
 module.exports = {
     receiptShouldSucceed: receiptShouldSucceed,
@@ -132,6 +106,5 @@ module.exports = {
     timeout: timeout,
     getEtherBalance: getEtherBalance,
     checkEtherBalance: checkEtherBalance,
-    getBonusAmount: getBonusAmount,
     getTxCost: getTxCost
 };
