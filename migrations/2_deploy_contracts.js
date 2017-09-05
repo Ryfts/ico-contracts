@@ -1,5 +1,5 @@
-var ConvertLib = artifacts.require("./ConvertLib.sol");
+var RyftsICO = artifacts.require("./RyftsICO.sol");
 
 module.exports = function(deployer) {
-  
+    deployer.deploy(RyftsICO);
 };

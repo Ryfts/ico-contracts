@@ -1,6 +1,5 @@
 pragma solidity ^0.4.13;
 
-
 import './ERC20.sol';
 
 contract RyftsICO is ERC20 {
@@ -8,9 +7,9 @@ contract RyftsICO is ERC20 {
     uint256 public icoSince;
     uint256 public icoTill;
 
-    uint256 public minCap;
+    uint256 public minIcoGoalTokens;
 
-    uint256 public tokenPrice;
+    uint256 public tokenPrice;  // 333333333333333
 
     uint256 public collectedEthers;
 
@@ -21,9 +20,10 @@ contract RyftsICO is ERC20 {
 
     function RyftsICO(
         uint256 _tokenPrice,
+        address reserveAccount,
         uint256 _icoSince,
         uint256 _icoTill,
-        uint256 _minCap,
+        uint256 _minIcoGoalTokens,
         uint256 initialSupply,
         string tokenName,
         string tokenSymbol,
@@ -32,8 +32,13 @@ contract RyftsICO is ERC20 {
         standard = 'Ryfts 0.1';
         icoSince = _icoSince;
         icoTill = _icoTill;
-        minCap = _minCap;
+        minIcoGoalTokens = _minIcoGoalTokens;
         tokenPrice = _tokenPrice;
+
+        balanceOf[reserveAccount] = initialSupply / 10;
+        balanceOf[this] -= balanceOf[reserveAccount];
+    
+        Transfer(this, reserveAccount, balanceOf[reserveAccount]);
     }
 
     function getBonusAmount(uint256 time, uint256 amount) returns (uint256) {
@@ -88,7 +93,7 @@ contract RyftsICO is ERC20 {
         }
 
         balanceOf[this] -= totalAmount;
-        balanceOf[_address] -= totalAmount;
+        balanceOf[_address] += totalAmount;
 
         collectedEthers += value;
 
@@ -125,11 +130,11 @@ contract RyftsICO is ERC20 {
 
     function icoFinished() {
         if(now > icoTill) {
-            if(collectedEthers >= minCap) {
-                isRefundAllowed = false;
+            if(balanceOf[this] > minIcoGoalTokens) {
+                isRefundAllowed = true;
             }
             else {
-                isRefundAllowed = true;
+                isRefundAllowed = false;
             }
 
             isIcoFinished = true;
