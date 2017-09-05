@@ -1,9 +1,9 @@
 pragma solidity ^0.4.13;
 
 
-import '../libs/contracts/LoggedERC20.sol';
+import './ERC20.sol';
 
-contract RyftsICO is LoggedERC20 {
+contract RyftsICO is ERC20 {
 
     uint256 public icoSince;
     uint256 public icoTill;
@@ -28,7 +28,7 @@ contract RyftsICO is LoggedERC20 {
         string tokenName,
         string tokenSymbol,
         bool _locked
-    ) LoggedERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) {
+    ) ERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) {
         standard = 'Ryfts 0.1';
         icoSince = _icoSince;
         icoTill = _icoTill;
@@ -79,19 +79,16 @@ contract RyftsICO is LoggedERC20 {
 
         uint256 totalAmount = amount + getBonusAmount(now, amount);
 
-        uint256 selfBalance = valueAt(loggedBalances[this], block.number);
-        uint256 holderBalance = valueAt(loggedBalances[_address], block.number);
-
-        if (selfBalance < totalAmount) {
+        if (balanceOf[this] < totalAmount) {
             return false;
         }
 
-        if (holderBalance + totalAmount < holderBalance) {
+        if (balanceOf[_address] + totalAmount < balanceOf[_address]) {
             return false;
         }
 
-        setBalance(_address, holderBalance + totalAmount);
-        setBalance(this, selfBalance - totalAmount);
+        balanceOf[this] -= totalAmount;
+        balanceOf[_address] -= totalAmount;
 
         collectedEthers += value;
 
@@ -105,6 +102,12 @@ contract RyftsICO is LoggedERC20 {
     function() payable {
         bool status = buy(msg.sender, now, msg.value);
         require(status == true);
+    }
+
+    function transfer(address _to, uint256 _value) onlyPayloadSize(2) {
+        require(isIcoFinished == true && isRefundAllowed == true);
+
+        super.transfer(_to, _value);
     }
 
     function setTokenPrice(uint256 _value) onlyOwner {
