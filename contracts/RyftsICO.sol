@@ -1,7 +1,7 @@
 pragma solidity ^0.4.13;
 
 
-import '../libs/contracts/LoggedERC20.sol';
+import './LoggedERC20.sol';
 
 contract RyftsICO is LoggedERC20 {
 
