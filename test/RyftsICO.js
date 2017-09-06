@@ -20,6 +20,7 @@ contract('Contract', function (accounts) {
         return Contract.new(
             new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
             new BigNumber("270000000000000"),
@@ -50,8 +51,8 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), new BigNumber("270000000000000"), "minIcoGoalTokens is not equal"))
             .then(() => instance.tokenPrice.call())
             .then((result) => assert.equal(result.valueOf(), new BigNumber("333333333333333"), "tokenPrice is not equal"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2970000000000000").valueOf()))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], new BigNumber("330000000000000").valueOf()));
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], new BigNumber("300000000000000").valueOf()));
     });
 
     it("create contract, buy tokens, get balance", function () {
@@ -59,32 +60,31 @@ contract('Contract', function (accounts) {
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         return Contract.new(
-            new BigNumber("0.000333333").mul(100000000),
+            new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("1000"),
-            new BigNumber("30000000"),
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             false
         ).then(function (_instance) {
             instance = _instance;
         })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("27000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: "1000000000000000000"});
             })
-            .then(function () {
-                return Utils.receiptShouldSucceed;
-            })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, 26996250))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 3750))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
             .then(function () {
                 return instance.collectedEthers.call();
             })
             .then(function (result) {
-                assert.equal(result.valueOf(), "1", "collected amount is not equal");
+                assert.equal(result.valueOf(), "1000000000000000000", "collected amount is not equal");
             })
     });
 
@@ -94,21 +94,22 @@ contract('Contract', function (accounts) {
         var icoTill = new Date().getTime() / 1000 + 3600 * 10;  // 10 hours in future
 
         return Contract.new(
-            new BigNumber("0.000333333").mul(100000000),
+            new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("1000"),
-            new BigNumber("30000000"),
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             false
         ).then(function (_instance) {
             instance = _instance;
         })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("27000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: 1000000000000000000});
             })
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
@@ -119,7 +120,7 @@ contract('Contract', function (accounts) {
                 assert.equal(result.valueOf(), "0", "collected amount is not equal");
             })
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "27000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
     it("should  not be able to buy tokens after preICO", function () {
@@ -128,21 +129,22 @@ contract('Contract', function (accounts) {
         var icoTill = new Date().getTime() / 1000 - 3600 * 10;
 
         return Contract.new(
-            new BigNumber("0.000333333").mul(100000000),
+            new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("1000"),
-            new BigNumber("30000000"),
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             false
         ).then(function (_instance) {
             instance = _instance;
         })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("27000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: 1000000000000000000});
             })
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
@@ -153,7 +155,7 @@ contract('Contract', function (accounts) {
                 assert.equal(result.valueOf(), "0", "collected amount is not equal");
             })
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "27000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
     it("should  not be able to buy tokens if contract is locked", function () {
@@ -161,21 +163,22 @@ contract('Contract', function (accounts) {
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         return Contract.new(
-            new BigNumber("0.000333333").mul(100000000),
+            new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("1000"),
-            new BigNumber("30000000"),
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             true
         ).then(function (_instance) {
             instance = _instance;
         })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("27000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: 1000000000000000000});
             })
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
@@ -186,21 +189,21 @@ contract('Contract', function (accounts) {
                 assert.equal(result.valueOf(), "0", "collected amount is not equal");
             })
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "27000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
     it("should be able to buy tokens, change token price", function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
-        var acoount0Funds= 0;
         return Contract.new(
-            new BigNumber("0.000333333").mul(100000000),
+            new BigNumber("333333333333333"),
             accounts[7],
+            new BigNumber("300000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("1000"),
-            new BigNumber("30000000"),
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             false
@@ -208,31 +211,29 @@ contract('Contract', function (accounts) {
             .then(function (_instance) {
                 instance = _instance;
             })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("27000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: "1000000000000000000"});
             })
-            .then(function () {
-                return Utils.receiptShouldSucceed;
-            })
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 3750))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000"))
             .then(function () {
                 return instance.collectedEthers.call();
             })
             .then(function (result) {
-                assert.equal(result.valueOf(), "1", "collected amount is not equal");
+                assert.equal(result.valueOf(), "1000000000000000000", "collected amount is not equal");
             })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "26996250"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2999625000000000")))
             .then(function () {
-                return instance.setTokenPrice(new BigNumber("40000"));
+                return instance.setTokenPrice(new BigNumber("400000000000000"));
             })
             .then(Utils.receiptShouldSucceed)
             .then(function () {
-                return instance.sendTransaction({value: 1});
+                return instance.sendTransaction({value: new BigNumber("1000000000000000000")});
             })
             .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 6875))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "26993125"))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("687500000000")))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2999312500000000")))
     });
 
     it("test different bonus amouns", function () {
@@ -247,39 +248,39 @@ contract('Contract', function (accounts) {
         var after9Hours = now + 3600 * 9 + 500;
 
         return Contract.new(
-                new BigNumber("0.000333333").mul(100000000),
-                accounts[7],
-                icoSince,
-                icoTill,
-                new BigNumber("1000"),
-                new BigNumber("30000000"),
-                "Ryfts",
-                "RFT",
-                false
-            )
-            .then(function (_instance) {
+            new BigNumber("333333333333333"),
+            accounts[7],
+            new BigNumber("300000000000000"),
+            icoSince,
+            icoTill,
+            new BigNumber("270000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            true
+        ).then(function (_instance) {
                 instance = _instance;
             })
-            .then(() => instance.getBonusAmount.call(now, 3000))
-            .then((result) => assert.equal(result.valueOf(), 750, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(now, 100000000))
-            .then((result) => assert.equal(result.valueOf(), 25000000, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(now, 9900908900))
-            .then((result) => assert.equal(result.valueOf(), 2475227225, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(now, new BigNumber("300000000000")))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber("75000000000"), "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(now, new BigNumber("10000000000000000")))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber("2500000000000000"), "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(now, new BigNumber("990090890000000000")))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber("247522722500000000"), "bonus is not equal"))
 
-            .then(() => instance.getBonusAmount.call(after3Hours, 3000))
-            .then((result) => assert.equal(result.valueOf(), 450, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(after3Hours, 15000000))
-            .then((result) => assert.equal(result.valueOf(), 2250000, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(after3Hours, 9900908900))
-            .then((result) => assert.equal(result.valueOf(), 1485136335, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after3Hours, 300000000000))
+            .then((result) => assert.equal(result.valueOf(), 45000000000, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after3Hours, 150000000000))
+            .then((result) => assert.equal(result.valueOf(), 22500000000, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after3Hours, new BigNumber("990090890000000000")))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber("148513633500000000"), "bonus is not equal"))
 
-            .then(() => instance.getBonusAmount.call(after6Hours, 3000))
-            .then((result) => assert.equal(result.valueOf(), 150, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(after6Hours, 100000000))
-            .then((result) => assert.equal(result.valueOf(), 5000000, "bonus is not equal"))
-            .then(() => instance.getBonusAmount.call(after6Hours, 9900908900))
-            .then((result) => assert.equal(result.valueOf(), 495045445, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after6Hours, new BigNumber(300000000000)))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber(15000000000), "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after6Hours, 10000000000))
+            .then((result) => assert.equal(result.valueOf(), 500000000, "bonus is not equal"))
+            .then(() => instance.getBonusAmount.call(after6Hours, new BigNumber(99009089000000000)))
+            .then((result) => assert.equal(result.valueOf(), new BigNumber(4950454450000000).valueOf(), "bonus is not equal"))
 
             .then(() => instance.getBonusAmount.call(after9Hours, 3000))
             .then((result) => assert.equal(result.valueOf(), 0, "bonus is not equal"))
@@ -297,6 +298,7 @@ contract('Contract', function (accounts) {
         return Contract.new(
                 new BigNumber("333333333333333"),
                 accounts[7],
+                new BigNumber("300000000000000"),
                 icoSince,
                 icoTill,
                 new BigNumber("1000"),
@@ -308,12 +310,12 @@ contract('Contract', function (accounts) {
             .then(function (_instance) {
                 instance = _instance;
             })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2970000000000000").valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "1000000000000000000"});
             })
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2969625000000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
 });
