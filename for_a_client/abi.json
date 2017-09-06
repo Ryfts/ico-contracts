@@ -355,6 +355,10 @@
         "type": "address"
       },
       {
+        "name": "reserveAmount",
+        "type": "uint256"
+      },
+      {
         "name": "_icoSince",
         "type": "uint256"
       },

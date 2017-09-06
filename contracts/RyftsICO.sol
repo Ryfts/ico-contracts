@@ -25,7 +25,7 @@ contract RyftsICO is ERC20 {
     function RyftsICO(
     uint256 _tokenPrice,
     address reserveAccount,
-    uint256 reserveAmmount,
+    uint256 reserveAmount,
     uint256 _icoSince,
     uint256 _icoTill,
     uint256 _minIcoGoalTokens,
@@ -40,9 +40,9 @@ contract RyftsICO is ERC20 {
         minIcoGoalTokens = _minIcoGoalTokens;
         tokenPrice = _tokenPrice;
 
-        require(reserveAmmount <= initialSupply);
+        require(reserveAmount <= initialSupply);
 
-        balanceOf[reserveAccount] = reserveAmmount;
+        balanceOf[reserveAccount] = reserveAmount;
         balanceOf[this] -= balanceOf[reserveAccount];
 
 
