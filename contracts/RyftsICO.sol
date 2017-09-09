@@ -112,6 +112,11 @@ contract RyftsICO is ERC20 {
         require(status == true);
     }
 
+    function buyFor(address holder) payable {
+        bool status = buy(holder, now, msg.value);
+        require(status == true);
+    }
+
     function transfer(address _to, uint256 _value) onlyPayloadSize(2) {
         require(isIcoFinished == true && isRefundAllowed == true);
 
