@@ -3,36 +3,41 @@ pragma solidity ^0.4.13;
 
 import './ERC20.sol';
 
+
 contract RyftsICO is ERC20 {
 
     uint256 public icoSince;
+
     uint256 public icoTill;
 
-    uint256 public minCap;
+    uint256 public minIcoGoalTokens;
 
-    uint256 public tokenPrice;
+    uint256 public tokenPrice;  // 333333333333333
 
     uint256 public collectedEthers;
 
     bool public isIcoFinished;
+
     bool public isRefundAllowed;
 
     mapping (address => uint256) sentEthers;
 
     function RyftsICO(
-        uint256 _tokenPrice,
-        uint256 _icoSince,
-        uint256 _icoTill,
-        uint256 _minCap,
-        uint256 initialSupply,
-        string tokenName,
-        string tokenSymbol,
-        bool _locked
+    uint256 _tokenPrice,
+    address reserveAccount,
+    uint256 reserveAmount,
+    uint256 _icoSince,
+    uint256 _icoTill,
+    uint256 _minIcoGoalTokens,
+    uint256 initialSupply,
+    string tokenName,
+    string tokenSymbol,
+    bool _locked
     ) ERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) {
         standard = 'Ryfts 0.1';
         icoSince = _icoSince;
         icoTill = _icoTill;
-        minCap = _minCap;
+        minIcoGoalTokens = _minIcoGoalTokens;
         tokenPrice = _tokenPrice;
 
         require(reserveAmount <= initialSupply);
@@ -45,17 +50,17 @@ contract RyftsICO is ERC20 {
     }
 
     function getBonusAmount(uint256 time, uint256 amount) returns (uint256) {
-        if(time < icoSince) {
+        if (time < icoSince) {
             return 0;
         }
 
-        if(time - icoSince <= 10800) {             // 3h since ico => reward 25%
+        if (time - icoSince <= 10800) {// 3h since ico => reward 25%
             return amount * 25 / 100;
         }
-        else if(time - icoSince <= 21600) {        // 6h since ico => reward 15%
+        else if (time - icoSince <= 21600) {// 6h since ico => reward 15%
             return amount * 15 / 100;
         }
-        else if(time - icoSince <= 32400) {        // 9h since ico => reward 5%
+        else if (time - icoSince <= 32400) {// 9h since ico => reward 5%
             return amount * 5 / 100;
         }
 
@@ -96,7 +101,7 @@ contract RyftsICO is ERC20 {
         }
 
         balanceOf[this] -= totalAmount;
-        balanceOf[_address] -= totalAmount;
+        balanceOf[_address] += totalAmount;
 
         collectedEthers += value;
 
@@ -137,12 +142,12 @@ contract RyftsICO is ERC20 {
     }
 
     function icoFinished() {
-        if(now > icoTill) {
-            if(collectedEthers >= minCap) {
-                isRefundAllowed = false;
+        if (now > icoTill) {
+            if (balanceOf[this] > minIcoGoalTokens) {
+                isRefundAllowed = true;
             }
             else {
-                isRefundAllowed = true;
+                isRefundAllowed = false;
             }
 
             isIcoFinished = true;
@@ -150,8 +155,8 @@ contract RyftsICO is ERC20 {
     }
 
     function refund() returns (bool) {
-        if(isIcoFinished == true && isRefundAllowed == true) {
-            if(sentEthers[msg.sender] > 0) {
+        if (isIcoFinished == true && isRefundAllowed == true) {
+            if (sentEthers[msg.sender] > 0) {
                 uint256 ethersToSent = sentEthers[msg.sender];
 
                 sentEthers[msg.sender] = 0;
@@ -166,7 +171,7 @@ contract RyftsICO is ERC20 {
     }
 
     function transferEthers() onlyOwner {
-        if(isIcoFinished == true && isRefundAllowed == false) {
+        if (isIcoFinished == true && isRefundAllowed == false) {
             owner.transfer(this.balance);
         }
     }
