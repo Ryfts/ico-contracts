@@ -34,6 +34,14 @@ contract RyftsICO is ERC20 {
         icoTill = _icoTill;
         minCap = _minCap;
         tokenPrice = _tokenPrice;
+
+        require(reserveAmount <= initialSupply);
+
+        balanceOf[reserveAccount] = reserveAmount;
+        balanceOf[this] -= balanceOf[reserveAccount];
+
+        Transfer(0, this, initialSupply);
+        Transfer(this, reserveAccount, balanceOf[reserveAccount]);
     }
 
     function getBonusAmount(uint256 time, uint256 amount) returns (uint256) {
