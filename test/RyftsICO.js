@@ -318,4 +318,34 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000"))
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
+
+    it("buyFor tokens for 1 ether", function () {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var acoount0Funds = 0;
+        return Contract.new(
+                new BigNumber("333333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("1000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                false
+            )
+        .then(function (_instance) {
+            instance = _instance;
+        })
+        .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+        .then(function () {
+            return instance.buyFor(accounts[2], {value: "1000000000000000000"});
+        })
+        .then(Utils.receiptShouldSucceed)
+        .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
+        .then(() => Utils.balanceShouldEqualTo(instance, accounts[2], "375000000000"))
+        .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
+    });
 });
