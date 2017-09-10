@@ -24,8 +24,6 @@ contract RyftsICO is ERC20, Multivest {
 
     event Refund(address holder, uint256 ethers, uint256 tokens);
 
-    event Debug(string s, uint256 v);
-
     function RyftsICO(
     uint256 _tokenPrice,
     address reserveAccount,
