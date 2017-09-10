@@ -15,7 +15,7 @@ function receiptShouldSucceed(result) {
             }
         }
         else {
-            console.log('gasUsed',result.receipt.gasUsed);
+            console.log('gasUsed',result.receipt.gasUsed, "tx cost", getTxCost(result));
             resolve();
         }
     });

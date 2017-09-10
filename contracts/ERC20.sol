@@ -3,6 +3,7 @@ pragma solidity ^0.4.13;
 
 import './Ownable.sol';
 
+contract tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData); }
 
 /*
     ERC20 compatible smart contract
@@ -26,6 +27,8 @@ contract ERC20 is Ownable {
 
     /* This creates an array with all balances */
     mapping (address => uint256) public balanceOf;
+
+    mapping (address => mapping (address => uint256)) public allowance;
 
     /* This generates a public event on the blockchain that will notify clients */
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -96,4 +99,47 @@ contract ERC20 is Ownable {
 
         require(status == true);
     }
+
+    /* Approve */
+    function approve(address _spender, uint256 _value) onlyPayloadSize(2) returns (bool success) {
+        if(locked) {
+            return false;
+        }
+
+        allowance[msg.sender][_spender] = _value;
+
+        return true;
+    }
+
+    /* Approve and then communicate the approved contract in a single tx */
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) returns (bool success) {
+        if (locked) {
+            return false;
+        }
+        tokenRecipient spender = tokenRecipient(_spender);
+        if (approve(_spender, _value)) {
+            spender.receiveApproval(msg.sender, _value, this, _extraData);
+            return true;
+        }
+    }
+
+    /* A contract attempts to get the coins */
+    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
+        if (locked) {
+            return false;
+        }
+
+        if (allowance[_from][msg.sender] < _value) {
+            return false;
+        }
+
+        bool _success = transferInternal(_from, _to, _value);
+
+        if (_success) {
+            allowance[_from][msg.sender] -= _value;
+        }
+
+        return _success;
+    }
+
 }

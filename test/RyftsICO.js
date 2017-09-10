@@ -9,6 +9,7 @@ var precision = new BigNumber("1000000000000000000");
  + create contract & check token info
  - transfer tokens, add reward, transfer tokens, claim, balance should equal zero
  - transfer tokens, add reward with 1 sec recycle, transfer tokens, timeout for 5 sec, balance should equal zero
+ - test buy over mutlivest
  */
 
 contract('Contract', function (accounts) {
@@ -27,6 +28,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             false
         ).then(function (_instance) {
             instance = _instance;
@@ -47,7 +49,7 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), icoSince, "preIcoSince is not equal"))
             .then(() => instance.icoTill.call())
             .then((result) => assert.equal(result.valueOf(), icoTill, "preIcoSince is not equal"))
-            .then(() => instance.minIcoGoalTokens.call())
+            .then(() => instance.goalMinSoldTokens.call())
             .then((result) => assert.equal(result.valueOf(), new BigNumber("270000000000000"), "minIcoGoalTokens is not equal"))
             .then(() => instance.tokenPrice.call())
             .then((result) => assert.equal(result.valueOf(), new BigNumber("333333333333333"), "tokenPrice is not equal"))
@@ -69,6 +71,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             false
         ).then(function (_instance) {
             instance = _instance;
@@ -103,6 +106,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             false
         ).then(function (_instance) {
             instance = _instance;
@@ -138,6 +142,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             false
         ).then(function (_instance) {
             instance = _instance;
@@ -172,6 +177,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             true
         ).then(function (_instance) {
             instance = _instance;
@@ -206,6 +212,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             false
         )
             .then(function (_instance) {
@@ -257,6 +264,7 @@ contract('Contract', function (accounts) {
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
+            0,
             true
         ).then(function (_instance) {
                 instance = _instance;
@@ -305,6 +313,7 @@ contract('Contract', function (accounts) {
                 new BigNumber("3300000000000000"),
                 "Ryfts",
                 "RFT",
+                0,
                 false
             )
             .then(function (_instance) {
@@ -334,6 +343,7 @@ contract('Contract', function (accounts) {
                 new BigNumber("3300000000000000"),
                 "Ryfts",
                 "RFT",
+                0,
                 false
             )
         .then(function (_instance) {
@@ -348,4 +358,282 @@ contract('Contract', function (accounts) {
         .then(() => Utils.balanceShouldEqualTo(instance, accounts[2], "375000000000"))
         .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
+
+    it("set multivest address, multivest buy", function () {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var acoount0Funds = 0;
+        return Contract.new(
+                new BigNumber("333333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("1000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                accounts[2],
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => instance.setAllowedMultivest(accounts[3]))
+            .then(Utils.receiptShouldSucceed)
+
+            .then(() => instance.multivestBuy(accounts[1], 1000000000000000000, {from: accounts[2]}))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 375000000000))
+
+            .then(() => instance.multivestBuy(accounts[1], 2000000000000000000, {from: accounts[3]}))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 1125000000000))
+
+            .then(() => instance.collectedEthers.call())
+            .then((result) => assert.equal(result.valueOf(), 3000000000000000000, "should equal 3 eth"))
+    });
+
+    it("buy, ico succed, ico finished, refund failed, transfer succeed", function () {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var acoount0Funds = 0;
+        return Contract.new(
+                new BigNumber("333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("300000000000000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                0,
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.sendTransaction({value: "1000000000000000000"});
+            })
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000375"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2624999999999625"))
+
+            .then(() => instance.refund.call())
+            .then((result) => assert.equal(result.valueOf(), false, "refund succeed"))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "ico finished"))
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "isIcoFinished set to true"))
+
+            .then(() => instance.setICOPeriod(icoSince, icoSince + 1))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "ico finished"))
+
+            .then(() => instance.icoFinished())
+
+            .then(() => instance.soldTokens.call())
+            .then((result) => assert.equal(result.valueOf(), 300000000000300, "soldTokens"))
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "isIcoFinished set to false"))
+
+            .then(() => instance.isRefundAllowed.call())
+            .then((result) => assert.equal(result.valueOf(), false, "isRefundAllowed set to true"))
+
+            .then(() => instance.refund.call())
+            .then((result) => assert.equal(result.valueOf(), false, "refund succeed"))
+
+            .then(() => instance.balanceOf.call(instance.address))
+            .then((result) => assert.equal(result.valueOf(), 0, "smart contract tokens not burned"))
+
+            .then(() => instance.transfer(accounts[5], 1000))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 374999999999375))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[5], 1000))
+
+            .then(() => instance.transfer(accounts[6], 100, {from: accounts[5]}))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 374999999999375))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[5], 900))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[6], 100))
+    });
+
+    it("buy, ico succed, ico failed, refund succed", function () {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var acoount0Funds = 0;
+        return Contract.new(
+                new BigNumber("333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("600000000000000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                0,
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.sendTransaction({value: "333333333333"});
+            })
+            .then(function () {
+                return instance.sendTransaction({value: "333333333333000", from: accounts[3]});
+            })
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "125000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999874875000000"))
+
+            .then(() => instance.refund.call())
+            .then((result) => assert.equal(result.valueOf(), false, "refund succeed"))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "ico finished"))
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "isIcoFinished set to true"))
+
+            .then(() => instance.setICOPeriod(icoSince, icoSince + 1))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "ico finished"))
+
+            .then(() => instance.icoFinished())
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "isIcoFinished set to false"))
+
+            .then(() => instance.isRefundAllowed.call())
+            .then((result) => assert.equal(result.valueOf(), true, "isRefundAllowed set to false"))
+
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[2], 0))
+            .then(() => instance.sentEthers.call(accounts[2]))
+            .then((result) => assert.equal(result.valueOf(), 0, "ether balance not equal to zero"))
+            .then(() => instance.refund.call({from: accounts[2]}))
+            .then((result) => assert.equal(result.valueOf(), false, "refund succeed"))
+            .then(() => instance.refund({from: accounts[2]}))
+            .then(Utils.receiptShouldSucceed)
+
+            .then(() => instance.refund.call())
+            .then((result) => assert.equal(result.valueOf(), true, "refund failed"))
+            .then(() => instance.refund())
+            .then(Utils.receiptShouldSucceed)
+
+            .then(() => instance.refundFor.call(accounts[3]))
+            .then((result) => assert.equal(result.valueOf(), true, "refund failed"))
+            .then(() => instance.refundFor(accounts[3]))
+            .then(Utils.receiptShouldSucceed)
+            
+            .then(() => instance.refund.call({from: accounts[3]}))
+            .then((result) => assert.equal(result.valueOf(), false, "refund succed"))
+            .then(() => instance.refund({from: accounts[3]}))
+            .then(Utils.receiptShouldSucceed)
+
+            .then(() => instance.balanceOf.call(instance.address))
+            .then((result) => assert.equal(result.valueOf(), 0, "smart contract tokens not burned"))
+    });
+
+    it("buy, ico succed, ico failed, refund succed, transfer failed", function () {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var acoount0Funds = 0;
+        return Contract.new(
+                new BigNumber("333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("600000000000000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                0,
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.sendTransaction({value: "333333333333"});
+            })
+            .then(function () {
+                return instance.sendTransaction({value: "333333333333000", from: accounts[3]});
+            })
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "125000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999874875000000"))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "ico finished"))
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), false, "isIcoFinished set to true"))
+
+            .then(() => instance.setICOPeriod(icoSince, icoSince + 1))
+
+            .then(() => instance.icoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "ico finished"))
+
+            .then(() => instance.icoFinished())
+
+            .then(() => instance.isIcoFinished.call())
+            .then((result) => assert.equal(result.valueOf(), true, "isIcoFinished set to false"))
+
+            .then(() => instance.isRefundAllowed.call())
+            .then((result) => assert.equal(result.valueOf(), true, "isRefundAllowed set to false"))
+
+            .then(() => instance.transfer(accounts[5], 1000))
+            .then(Utils.receiptShouldFailed)
+            .catch(Utils.catchReceiptShouldFailed)
+    });
+
+    it("buyFor short address attack", function() {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+
+        var acoount0Funds = 0;
+
+        return Contract.new(
+                new BigNumber("333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("600000000000000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                0,
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.buyFor("0x1234567890123456789012345678901234", {value: "333333333333"});
+            })
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, "0x0000001234567890123456789012345678901234", "125000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 0))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999999875000000"));
+    })
 });

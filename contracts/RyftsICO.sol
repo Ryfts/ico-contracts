@@ -1,16 +1,16 @@
 pragma solidity ^0.4.13;
 
-
 import './ERC20.sol';
+import './Multivest.sol';
 
-
-contract RyftsICO is ERC20 {
+contract RyftsICO is ERC20, Multivest {
 
     uint256 public icoSince;
 
     uint256 public icoTill;
 
-    uint256 public minIcoGoalTokens;
+    uint256 public soldTokens;
+    uint256 public goalMinSoldTokens;
 
     uint256 public tokenPrice;  // 333333333333333
 
@@ -19,8 +19,12 @@ contract RyftsICO is ERC20 {
     bool public isIcoFinished;
 
     bool public isRefundAllowed;
+    
+    mapping (address => uint256) public sentEthers;
 
-    mapping (address => uint256) sentEthers;
+    event Refund(address holder, uint256 ethers, uint256 tokens);
+
+    event Debug(string s, uint256 v);
 
     function RyftsICO(
     uint256 _tokenPrice,
@@ -28,24 +32,24 @@ contract RyftsICO is ERC20 {
     uint256 reserveAmount,
     uint256 _icoSince,
     uint256 _icoTill,
-    uint256 _minIcoGoalTokens,
+    uint256 _goalMinSoldTokens,
     uint256 initialSupply,
     string tokenName,
     string tokenSymbol,
+    address multivestMiddleware,
     bool _locked
-    ) ERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) {
+    ) ERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) Multivest(multivestMiddleware) {
         standard = 'Ryfts 0.1';
         icoSince = _icoSince;
         icoTill = _icoTill;
-        minIcoGoalTokens = _minIcoGoalTokens;
+        goalMinSoldTokens = _goalMinSoldTokens;
         tokenPrice = _tokenPrice;
 
         require(reserveAmount <= initialSupply);
 
         balanceOf[reserveAccount] = reserveAmount;
         balanceOf[this] -= balanceOf[reserveAccount];
-
-        Transfer(0, this, initialSupply);
+    
         Transfer(this, reserveAccount, balanceOf[reserveAccount]);
     }
 
@@ -90,6 +94,8 @@ contract RyftsICO is ERC20 {
             return false;
         }
 
+        soldTokens += amount;
+
         uint256 totalAmount = amount + getBonusAmount(now, amount);
 
         if (balanceOf[this] < totalAmount) {
@@ -105,8 +111,6 @@ contract RyftsICO is ERC20 {
 
         collectedEthers += value;
 
-        sentEthers[_address] += value;
-
         Transfer(this, _address, totalAmount);
 
         return true;
@@ -114,18 +118,24 @@ contract RyftsICO is ERC20 {
 
     function() payable {
         bool status = buy(msg.sender, now, msg.value);
+
         require(status == true);
+
+        sentEthers[msg.sender] += msg.value;
     }
 
     function buyFor(address holder) payable {
         bool status = buy(holder, now, msg.value);
+
         require(status == true);
+
+        sentEthers[holder] += msg.value;
     }
 
-    function transfer(address _to, uint256 _value) onlyPayloadSize(2) {
-        require(isIcoFinished == true && isRefundAllowed == true);
+    function transferInternal(address _from, address _to, uint256 value) internal returns (bool success) {
+        require(isIcoFinished == true && isRefundAllowed == false);
 
-        super.transfer(_to, _value);
+        return super.transferInternal(_from, _to, value);
     }
 
     function setTokenPrice(uint256 _value) onlyOwner {
@@ -141,33 +151,57 @@ contract RyftsICO is ERC20 {
         locked = _locked;
     }
 
-    function icoFinished() {
-        if (now > icoTill) {
-            if (balanceOf[this] > minIcoGoalTokens) {
-                isRefundAllowed = true;
+    function icoFinished() returns (bool) {
+        if(isIcoFinished == true) {
+            return true;
+        }
+
+        if (now > icoTill || balanceOf[this] == 0) {
+            if (soldTokens >= goalMinSoldTokens) {
+                isRefundAllowed = false;
             }
             else {
-                isRefundAllowed = false;
+                isRefundAllowed = true;
             }
 
             isIcoFinished = true;
+
+            balanceOf[this] = 0;
         }
+
+        return isIcoFinished;
     }
 
-    function refund() returns (bool) {
+    function refundInternal(address holder) internal returns (bool success) {
         if (isIcoFinished == true && isRefundAllowed == true) {
-            if (sentEthers[msg.sender] > 0) {
-                uint256 ethersToSent = sentEthers[msg.sender];
+            uint256 refundEthers = sentEthers[holder];
+            uint256 refundTokens = balanceOf[holder];
 
-                sentEthers[msg.sender] = 0;
-
-                msg.sender.transfer(ethersToSent);
-
-                return true;
+            if(refundEthers == 0 && refundTokens == 0) {
+                return false;
             }
+
+            balanceOf[holder] = 0;
+            sentEthers[holder] = 0;
+
+            if (refundEthers > 0) {
+                holder.transfer(refundEthers);
+            }
+
+            Refund(holder, refundEthers, refundTokens);
+
+            return true;
         }
 
         return false;
+    }
+
+    function refund() returns (bool) {
+        return refundInternal(msg.sender);
+    }
+
+    function refundFor(address holder) returns (bool) {
+        return refundInternal(holder);
     }
 
     function transferEthers() onlyOwner {
