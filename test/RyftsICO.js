@@ -328,7 +328,7 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
 
-    it("buyFor tokens for 1 ether", function () {
+    it("buy tokens for 1 ether", function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
@@ -351,7 +351,7 @@ contract('Contract', function (accounts) {
         })
         .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
         .then(function () {
-            return instance.buyFor(accounts[2], {value: "1000000000000000000"});
+            return instance.sendTransaction({value: "1000000000000000000", from: accounts[2]});
         })
         .then(Utils.receiptShouldSucceed)
         .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
@@ -604,40 +604,7 @@ contract('Contract', function (accounts) {
             .catch(Utils.catchReceiptShouldFailed)
     });
 
-    it("buyFor short address attack", function() {
-        var instance;
-        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
-
-        var acoount0Funds = 0;
-
-        return Contract.new(
-                new BigNumber("333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("600000000000000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
-            .then(function () {
-                return instance.buyFor("0x1234567890123456789012345678901234", {value: "333333333333"});
-            })
-            .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, "0x0000001234567890123456789012345678901234", "125000000"))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 0))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999999875000000"));
-    })
-
-    it("set multivest & buyFor", function() {
+    it("set multivest & buy", function() {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;

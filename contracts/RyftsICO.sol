@@ -122,14 +122,6 @@ contract RyftsICO is ERC20, Multivest {
         sentEthers[msg.sender] += msg.value;
     }
 
-    function buyFor(address holder) payable {
-        bool status = buy(holder, now, msg.value);
-
-        require(status == true);
-
-        sentEthers[holder] += msg.value;
-    }
-
     function transferInternal(address _from, address _to, uint256 value) internal returns (bool success) {
         require(isIcoFinished == true && isRefundAllowed == false);
 
