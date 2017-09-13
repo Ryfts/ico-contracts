@@ -636,4 +636,54 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 0))
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999999875000000"));
     })
+
+    it("set multivest & buyFor", function() {
+        var instance;
+        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+
+        return Contract.new(
+                new BigNumber("333333333333"),
+                accounts[7],
+                new BigNumber("300000000000000"),
+                icoSince,
+                icoTill,
+                new BigNumber("600000000000000"),
+                new BigNumber("3300000000000000"),
+                "Ryfts",
+                "RFT",
+                0,
+                false
+            )
+            .then(function (_instance) {
+                instance = _instance;
+            })
+            .then(() => instance.setAllowedMultivest(accounts[0]))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => instance.allowedMultivests.call(accounts[0]))
+            .then((result) => assert.equal(result.valueOf(), true, "should be true"))
+
+            .then(() => instance.multivestBuy(accounts[1], 10000))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 3))
+
+            .then(() => instance.multivestBuy(accounts[1], 10000, {from: accounts[2]}))
+            .then(Utils.receiptShouldFailed)
+            .catch(Utils.catchReceiptShouldFailed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 3))
+
+            .then(() => instance.multivestBuy(accounts[1], 10000))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 6))
+
+            .then(() => instance.unsetAllowedMultivest(accounts[0]))
+            .then(Utils.receiptShouldSucceed)
+            .then(() => instance.allowedMultivests.call(accounts[0]))
+            .then((result) => assert.equal(result.valueOf(), false, "should be false"))
+
+            .then(() => instance.multivestBuy(accounts[1], 10000))
+            .then(Utils.receiptShouldFailed)
+            .catch(Utils.catchReceiptShouldFailed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 6))
+    });
 });
