@@ -33,6 +33,8 @@ contract ERC20 is Ownable {
     /* This generates a public event on the blockchain that will notify clients */
     event Transfer(address indexed from, address indexed to, uint256 value);
 
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+
     modifier onlyPayloadSize(uint numwords) {
         assert(msg.data.length == numwords * 32 + 4);
         _;
@@ -107,6 +109,8 @@ contract ERC20 is Ownable {
         }
 
         allowance[msg.sender][_spender] = _value;
+
+        Approval(msg.sender, _spender, _value);
 
         return true;
     }
