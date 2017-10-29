@@ -1,6 +1,8 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
-import './Ownable.sol';
+
+import "./Ownable.sol";
+
 
 contract Multivest is Ownable {
     /* public variables */
@@ -22,21 +24,21 @@ contract Multivest is Ownable {
     }
 
     /* public methods */
-    function setAllowedMultivest(address _address) onlyOwner {
+    function setAllowedMultivest(address _address) public onlyOwner {
         allowedMultivests[_address] = true;
     }
 
-    function unsetAllowedMultivest(address _address) onlyOwner {
+    function unsetAllowedMultivest(address _address) public onlyOwner {
         allowedMultivests[_address] = false;
     }
 
-    function buy(address _address, uint256 time, uint256 value) internal returns (bool);
-
-    function multivestBuy(address holder, uint256 value) onlyPayloadSize(2) {
+    function multivestBuy(address holder, uint256 value) public onlyPayloadSize(2) {
         require(allowedMultivests[msg.sender] == true);
 
-        bool status = buy(holder, now, value);
+        bool status = buy(holder, block.timestamp, value);
         
         require(status == true);
     }
+
+    function buy(address _address, uint256 time, uint256 value) internal returns (bool);
 }

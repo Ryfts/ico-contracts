@@ -1,23 +1,19 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
-import './ERC20.sol';
-import './Multivest.sol';
+
+import "./ERC20.sol";
+import "./Multivest.sol";
+
 
 contract RyftsICO is ERC20, Multivest {
-
     uint256 public icoSince;
-
     uint256 public icoTill;
-
+    uint256 public allocatedTokensForSale;
     uint256 public soldTokens;
     uint256 public goalMinSoldTokens;
-
     uint256 public tokenPrice;  // 333333333333333
-
     uint256 public collectedEthers;
-
     bool public isIcoFinished;
-
     bool public isRefundAllowed;
     
     mapping (address => uint256) public sentEthers;
@@ -25,50 +21,109 @@ contract RyftsICO is ERC20, Multivest {
     event Refund(address holder, uint256 ethers, uint256 tokens);
 
     function RyftsICO(
-    uint256 _tokenPrice,
-    address reserveAccount,
-    uint256 reserveAmount,
-    uint256 _icoSince,
-    uint256 _icoTill,
-    uint256 _goalMinSoldTokens,
-    uint256 initialSupply,
-    string tokenName,
-    string tokenSymbol,
-    address multivestMiddleware,
-    bool _locked
-    ) ERC20(initialSupply, tokenName, 8, tokenSymbol, false, _locked) Multivest(multivestMiddleware) {
-        standard = 'Ryfts 0.1';
+        uint256 _tokenPrice,
+        address _reserveAccount,
+        uint256 _reserveAmount,
+        uint256 _icoSince,
+        uint256 _icoTill,
+        uint256 _goalMinSoldTokens,
+        uint256 _initialSupply,
+        string _tokenName,
+        string _tokenSymbol,
+        address _multivestMiddleware,
+        bool _locked
+    )
+        ERC20(_initialSupply, _tokenName, 8, _tokenSymbol, false, _locked)
+        Multivest(_multivestMiddleware)
+    {
+        standard = "Ryfts 0.1";
         icoSince = _icoSince;
         icoTill = _icoTill;
         goalMinSoldTokens = _goalMinSoldTokens;
         tokenPrice = _tokenPrice;
 
-        require(reserveAmount <= initialSupply);
+        require(_reserveAmount <= _initialSupply);
 
-        balanceOf[reserveAccount] = reserveAmount;
-        balanceOf[this] -= balanceOf[reserveAccount];
+        balanceOf[_reserveAccount] = _reserveAmount;
+        balanceOf[this] -= balanceOf[_reserveAccount];
+
+        allocatedTokensForSale = balanceOf[this];
     
-        Transfer(this, reserveAccount, balanceOf[reserveAccount]);
+        Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
     }
 
-    function getBonusAmount(uint256 time, uint256 amount) returns (uint256) {
+    function() external payable {
+        bool status = buy(msg.sender, block.timestamp, msg.value);
+
+        require(status == true);
+
+        sentEthers[msg.sender] += msg.value;
+    }
+
+    function getBonusAmount(uint256 time, uint256 amount) public constant returns (uint256) {
         if (time < icoSince) {
             return 0;
         }
 
         if (time - icoSince <= 10800) {// 3h since ico => reward 25%
             return amount * 25 / 100;
-        }
-        else if (time - icoSince <= 21600) {// 6h since ico => reward 15%
+        } else if (time - icoSince <= 21600) {// 6h since ico => reward 15%
             return amount * 15 / 100;
-        }
-        else if (time - icoSince <= 32400) {// 9h since ico => reward 5%
+        } else if (time - icoSince <= 32400) {// 9h since ico => reward 5%
             return amount * 5 / 100;
         }
 
         return 0;
     }
 
+    function setTokenPrice(uint256 _value) public onlyOwner {
+        tokenPrice = _value;
+    }
+
+    function setICOPeriod(uint256 _icoSince, uint256 _icoTill) public onlyOwner {
+        icoSince = _icoSince;
+        icoTill = _icoTill;
+    }
+
+    function setLocked(bool _locked) public onlyOwner {
+        locked = _locked;
+    }
+
+    function icoFinished() public returns (bool) {
+        if (isIcoFinished == true) {
+            return true;
+        }
+
+        if (block.timestamp > icoTill || balanceOf[this] == 0) {
+            if (soldTokens >= goalMinSoldTokens) {
+                isRefundAllowed = false;
+            } else {
+                isRefundAllowed = true;
+            }
+
+            isIcoFinished = true;
+
+            balanceOf[this] = 0;
+        }
+
+        return isIcoFinished;
+    }
+
+    function refund() public returns (bool) {
+        return refundInternal(msg.sender);
+    }
+
+    function refundFor(address holder) public returns (bool) {
+        return refundInternal(holder);
+    }
+
+    function transferEthers() public onlyOwner {
+        if (isIcoFinished == true && isRefundAllowed == false) {
+            owner.transfer(this.balance);
+        }
+    }
+
+    /* solhint-disable code-complexity */
     function buy(address _address, uint256 time, uint256 value) internal returns (bool) {
         if (locked == true) {
             return false;
@@ -94,7 +149,7 @@ contract RyftsICO is ERC20, Multivest {
 
         soldTokens += amount;
 
-        uint256 totalAmount = amount + getBonusAmount(now, amount);
+        uint256 totalAmount = amount + getBonusAmount(block.timestamp, amount);
 
         if (balanceOf[this] < totalAmount) {
             return false;
@@ -113,14 +168,7 @@ contract RyftsICO is ERC20, Multivest {
 
         return true;
     }
-
-    function() payable {
-        bool status = buy(msg.sender, now, msg.value);
-
-        require(status == true);
-
-        sentEthers[msg.sender] += msg.value;
-    }
+    /* solhint-enable code-complexity */
 
     function transferInternal(address _from, address _to, uint256 value) internal returns (bool success) {
         require(isIcoFinished == true && isRefundAllowed == false);
@@ -128,46 +176,12 @@ contract RyftsICO is ERC20, Multivest {
         return super.transferInternal(_from, _to, value);
     }
 
-    function setTokenPrice(uint256 _value) onlyOwner {
-        tokenPrice = _value;
-    }
-
-    function setICOPeriod(uint256 _icoSince, uint256 _icoTill) onlyOwner {
-        icoSince = _icoSince;
-        icoTill = _icoTill;
-    }
-
-    function setLocked(bool _locked) onlyOwner {
-        locked = _locked;
-    }
-
-    function icoFinished() returns (bool) {
-        if(isIcoFinished == true) {
-            return true;
-        }
-
-        if (now > icoTill || balanceOf[this] == 0) {
-            if (soldTokens >= goalMinSoldTokens) {
-                isRefundAllowed = false;
-            }
-            else {
-                isRefundAllowed = true;
-            }
-
-            isIcoFinished = true;
-
-            balanceOf[this] = 0;
-        }
-
-        return isIcoFinished;
-    }
-
     function refundInternal(address holder) internal returns (bool success) {
         if (isIcoFinished == true && isRefundAllowed == true) {
             uint256 refundEthers = sentEthers[holder];
             uint256 refundTokens = balanceOf[holder];
 
-            if(refundEthers == 0 && refundTokens == 0) {
+            if (refundEthers == 0 && refundTokens == 0) {
                 return false;
             }
 
@@ -184,19 +198,5 @@ contract RyftsICO is ERC20, Multivest {
         }
 
         return false;
-    }
-
-    function refund() returns (bool) {
-        return refundInternal(msg.sender);
-    }
-
-    function refundFor(address holder) returns (bool) {
-        return refundInternal(holder);
-    }
-
-    function transferEthers() onlyOwner {
-        if (isIcoFinished == true && isRefundAllowed == false) {
-            owner.transfer(this.balance);
-        }
     }
 }

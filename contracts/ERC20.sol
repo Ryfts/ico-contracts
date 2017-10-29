@@ -1,17 +1,19 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
+
+import "./Ownable.sol";
 
 
-import './Ownable.sol';
+contract TokenRecipient {
+    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public;
+}
 
-contract tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData); }
 
 /*
     ERC20 compatible smart contract
-    without approve and transferFrom
 */
 contract ERC20 is Ownable {
     /* Public variables of the token */
-    string public standard = 'ERC20 0.1';
+    string public standard = "ERC20 0.1";
 
     string public name;
 
@@ -31,7 +33,7 @@ contract ERC20 is Ownable {
     mapping (address => mapping (address => uint256)) public allowance;
 
     /* This generates a public event on the blockchain that will notify clients */
-    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
@@ -53,13 +55,8 @@ contract ERC20 is Ownable {
 
         if (transferAllSupplyToOwner) {
             balanceOf[msg.sender] = initialSupply;
-
-            Transfer(0, msg.sender, initialSupply);
-        }
-        else {
+        } else {
             balanceOf[this] = initialSupply;
-
-            Transfer(0, this, initialSupply);
         }
 
         name = tokenName;
@@ -72,29 +69,8 @@ contract ERC20 is Ownable {
         creationBlock = block.number;
     }
 
-    function transferInternal(address _from, address _to, uint256 value) internal returns (bool success) {
-        if (value == 0) {
-            return false;
-        }
-
-        if (balanceOf[_from] < value) {
-            return false;
-        }
-
-        if (balanceOf[_to] + value <= balanceOf[_to]) {
-            return false;
-        }
-        
-        balanceOf[_from] -= value;
-        balanceOf[_to] += value;
-        
-        Transfer(_from, _to, value);
-
-        return true;
-    }
-
     /* Send coins */
-    function transfer(address _to, uint256 _value) onlyPayloadSize(2) {
+    function transfer(address _to, uint256 _value) public onlyPayloadSize(2) {
         require(locked == false);
 
         bool status = transferInternal(msg.sender, _to, _value);
@@ -103,8 +79,8 @@ contract ERC20 is Ownable {
     }
 
     /* Approve */
-    function approve(address _spender, uint256 _value) onlyPayloadSize(2) returns (bool success) {
-        if(locked) {
+    function approve(address _spender, uint256 _value) public onlyPayloadSize(2) returns (bool success) {
+        if (locked) {
             return false;
         }
 
@@ -116,11 +92,13 @@ contract ERC20 is Ownable {
     }
 
     /* Approve and then communicate the approved contract in a single tx */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) returns (bool success) {
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
         if (locked) {
             return false;
         }
-        tokenRecipient spender = tokenRecipient(_spender);
+
+        TokenRecipient spender = TokenRecipient(_spender);
+
         if (approve(_spender, _value)) {
             spender.receiveApproval(msg.sender, _value, this, _extraData);
             return true;
@@ -128,7 +106,7 @@ contract ERC20 is Ownable {
     }
 
     /* A contract attempts to get the coins */
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
         if (locked) {
             return false;
         }
@@ -144,6 +122,29 @@ contract ERC20 is Ownable {
         }
 
         return _success;
+    }
+
+    function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
+        if (_value == 0) {
+            Transfer(_from, _to, 0);
+
+            return true;
+        }
+
+        if (balanceOf[_from] < _value) {
+            return false;
+        }
+
+        if (balanceOf[_to] + _value <= balanceOf[_to]) {
+            return false;
+        }
+
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+
+        Transfer(_from, _to, _value);
+
+        return true;
     }
 
 }
