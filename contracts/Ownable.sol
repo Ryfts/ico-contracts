@@ -1,19 +1,24 @@
 pragma solidity 0.4.15;
 
-
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
 contract Ownable {
+    //Variables
     address public owner;
 
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
     address public newOwner;
+
+    //    Modifiers
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
 
     /**
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
@@ -24,17 +29,12 @@ contract Ownable {
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param _newOwner The address to transfer ownership to.
      */
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
     function transferOwnership(address _newOwner) public onlyOwner {
-        if (_newOwner != address(0)) {
-            newOwner = _newOwner;
-        }
+        require(_newOwner != address(0));
+        newOwner = _newOwner;
     }
 
     function acceptOwnership() public {

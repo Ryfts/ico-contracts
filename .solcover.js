@@ -1,3 +1,4 @@
 module.exports = {
-    skipFiles: ['Migrations.sol']
+    skipFiles: ['Migrations.sol', 'test/TestMultivest.sol'],
+    norpc: true
 };
