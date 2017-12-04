@@ -359,7 +359,7 @@ contract('Contract', function (accounts) {
         .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
 
-    it("set multivest address, multivest buy", function () {
+    it("set multivest address, multivest buy", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
@@ -383,11 +383,11 @@ contract('Contract', function (accounts) {
             .then(() => instance.setAllowedMultivest(accounts[3]))
             .then(Utils.receiptShouldSucceed)
 
-            .then(() => instance.multivestBuy(accounts[1], 1000000000000000000, {from: accounts[2]}))
+            await instance.multivestBuy(accounts[1], 1000000000000000000, {from: accounts[2]})
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 375000000000))
 
-            .then(() => instance.multivestBuy(accounts[1], 2000000000000000000, {from: accounts[3]}))
+            await instance.multivestBuy(accounts[1], 2000000000000000000, {from: accounts[3]})
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 1125000000000))
 
@@ -604,7 +604,7 @@ contract('Contract', function (accounts) {
             .catch(Utils.catchReceiptShouldFailed)
     });
 
-    it("set multivest & buy", function() {
+    it("set multivest & buy", async function() {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
@@ -630,7 +630,7 @@ contract('Contract', function (accounts) {
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
 
-            .then(() => instance.multivestBuy(accounts[1], 10000))
+            await instance.multivestBuy(accounts[1], 10000)
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 3))
 

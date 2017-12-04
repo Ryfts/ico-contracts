@@ -50,7 +50,7 @@ contract ERC20 is Ownable {
         string tokenSymbol,
         bool transferAllSupplyToOwner,
         bool _locked
-    ) {
+    ) public {
         totalSupply = initialSupply;
 
         if (transferAllSupplyToOwner) {

@@ -13,9 +13,13 @@ contract RyftsICO is ERC20, Multivest {
     uint256 public goalMinSoldTokens;
     uint256 public tokenPrice;  // 333333333333333
     uint256 public collectedEthers;
+    uint256 public minContribution;
+    uint256 public maxContribution;
+
     bool public isIcoFinished;
     bool public isRefundAllowed;
-    
+    bool public multivestActive;
+
     mapping (address => uint256) public sentEthers;
 
     event Refund(address holder, uint256 ethers, uint256 tokens);
@@ -33,6 +37,7 @@ contract RyftsICO is ERC20, Multivest {
         address _multivestMiddleware,
         bool _locked
     )
+        public
         ERC20(_initialSupply, _tokenName, 8, _tokenSymbol, false, _locked)
         Multivest(_multivestMiddleware)
     {
@@ -53,6 +58,7 @@ contract RyftsICO is ERC20, Multivest {
     }
 
     function() external payable {
+        require(false == multivestActive);
         bool status = buy(msg.sender, block.timestamp, msg.value);
 
         require(status == true);
@@ -123,8 +129,19 @@ contract RyftsICO is ERC20, Multivest {
         }
     }
 
+    function setMultivestStatus(bool _value) public onlyOwner {
+        multivestActive = _value;
+    }
+
+    function setMinMaxContribution(uint256 _min, uint256 _max) public onlyOwner {
+        require(minContribution <= maxContribution);
+
+        minContribution = _min;
+        maxContribution = _max;
+    }
+
     /* solhint-disable code-complexity */
-    function buy(address _address, uint256 time, uint256 value) internal returns (bool) {
+    function buy(address _address, uint256 time, uint256 _value) internal returns (bool) {
         if (locked == true) {
             return false;
         }
@@ -137,11 +154,15 @@ contract RyftsICO is ERC20, Multivest {
             return false;
         }
 
-        if (value == 0) {
+        if (_value == 0) {
             return false;
         }
 
-        uint256 amount = value * (uint256(10) ** decimals) / tokenPrice;
+        if (false == checkValuePermission(_value)) {
+            return false;
+        }
+
+        uint256 amount = _value * (uint256(10) ** decimals) / tokenPrice;
 
         if (amount == 0) {
             return false;
@@ -162,18 +183,18 @@ contract RyftsICO is ERC20, Multivest {
         balanceOf[this] -= totalAmount;
         balanceOf[_address] += totalAmount;
 
-        collectedEthers += value;
+        collectedEthers += _value;
 
-        Transfer(this, _address, totalAmount);
+        Contribution(_address, _value, totalAmount);
 
         return true;
     }
     /* solhint-enable code-complexity */
 
-    function transferInternal(address _from, address _to, uint256 value) internal returns (bool success) {
+    function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
         require(isIcoFinished == true && isRefundAllowed == false);
 
-        return super.transferInternal(_from, _to, value);
+        return super.transferInternal(_from, _to, _value);
     }
 
     function refundInternal(address holder) internal returns (bool success) {
@@ -199,4 +220,25 @@ contract RyftsICO is ERC20, Multivest {
 
         return false;
     }
+
+    function checkValuePermission(uint256 _value) internal returns (bool) {
+        if (minContribution == 0 && maxContribution == 0) {
+            return true;
+        }
+
+        if (minContribution <= _value && _value <= maxContribution) {
+            return true;
+        }
+
+        if (_value > maxContribution && maxContribution != 0) {
+            return false;
+        }
+
+        if (_value < minContribution && maxContribution != 0) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

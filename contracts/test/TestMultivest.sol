@@ -18,7 +18,7 @@ contract TestMultivest is Multivest, ERC20 {
         standard = "TestMultivest 0.1";
     }
 
-    function buy(address _address, uint256 time, uint256 value) internal returns (bool) {
+    function buy(address _address, uint256, uint256 value) internal returns (bool) {
         return transferInternal(this, _address, value);
     }
 }
