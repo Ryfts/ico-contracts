@@ -1,4 +1,4 @@
-var RyftsICO = artifacts.require("./RyftsICO.sol");
+var RyftsICO = artifacts.require("./Ryfts.sol");
 
 module.exports = function(deployer) {
     deployer.deploy(RyftsICO);

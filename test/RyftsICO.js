@@ -1,4 +1,4 @@
-var Contract = artifacts.require("./RyftsICO.sol");
+var Contract = artifacts.require("./Ryfts.sol");
 
 var Utils = require("./utils");
 
@@ -13,18 +13,14 @@ var precision = new BigNumber("1000000000000000000");
  */
 
 contract('Contract', function (accounts) {
-    it("create contract & check token info", function () {
+    it("create contract & check token info", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000);
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
@@ -33,6 +29,18 @@ contract('Contract', function (accounts) {
         ).then(function (_instance) {
             instance = _instance;
         })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => instance.standard.call())
             .then((result) => assert.equal(result.valueOf(), "Ryfts 0.1", "standard is not equal"))
             .then(() => instance.name.call())
@@ -57,17 +65,13 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], new BigNumber("300000000000000").valueOf()));
     });
 
-    it("create contract, buy tokens, get balance", function () {
+    it("create contract, buy tokens, get balance", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
@@ -76,6 +80,18 @@ contract('Contract', function (accounts) {
         ).then(function (_instance) {
             instance = _instance;
         })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "1000000000000000000"});
@@ -91,18 +107,14 @@ contract('Contract', function (accounts) {
             })
     });
 
-    it("should  not be able to buy tokens before ICO", function () {
+    it("should  not be able to buy tokens before ICO", async function () {
         var instance;
         var icoSince = new Date().getTime() / 1000 + 3600 * 8;  // 8 hours in future
         var icoTill = new Date().getTime() / 1000 + 3600 * 10;  // 10 hours in future
 
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
@@ -111,6 +123,18 @@ contract('Contract', function (accounts) {
         ).then(function (_instance) {
             instance = _instance;
         })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: 1000000000000000000});
@@ -127,18 +151,14 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
-    it("should  not be able to buy tokens after preICO", function () {
+    it("should  not be able to buy tokens after preICO", async function () {
         var instance;
         var icoSince = new Date().getTime() / 1000 - 3600 * 8;
         var icoTill = new Date().getTime() / 1000 - 3600 * 10;
 
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
@@ -147,6 +167,18 @@ contract('Contract', function (accounts) {
         ).then(function (_instance) {
             instance = _instance;
         })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: 1000000000000000000});
@@ -163,17 +195,13 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
-    it("should  not be able to buy tokens if contract is locked", function () {
+    it("should  not be able to buy tokens if contract is locked", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
@@ -182,6 +210,18 @@ contract('Contract', function (accounts) {
         ).then(function (_instance) {
             instance = _instance;
         })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: 1000000000000000000});
@@ -198,26 +238,33 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "3000000000000000"))
     });
 
-    it("should be able to buy tokens, change token price", function () {
+    it("should be able to buy tokens, change token price", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             0,
             false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
         )
-            .then(function (_instance) {
-                instance = _instance;
-            })
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "1000000000000000000"});
@@ -232,7 +279,7 @@ contract('Contract', function (accounts) {
             })
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2999625000000000")))
             .then(function () {
-                return instance.setTokenPrice(new BigNumber("400000000000000"));
+                return instance.setTokenPrice(0, new BigNumber("400000000000000"));
             })
             .then(Utils.receiptShouldSucceed)
             .then(function () {
@@ -243,11 +290,11 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("2999312500000000")))
     });
 
-    it("test different bonus amouns", function () {
+    it("test different bonus amouns", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
-        var acoount0Funds= 0;
+        var acoount0Funds = 0;
 
         var now = new Date().getTime() / 1000 + 10;
         var after3Hours = now + 3600 * 3 + 500;
@@ -255,20 +302,28 @@ contract('Contract', function (accounts) {
         var after9Hours = now + 3600 * 9 + 500;
 
         return Contract.new(
-            new BigNumber("333333333333333"),
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("270000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
             0,
-            true
+            false
         ).then(function (_instance) {
-                instance = _instance;
-            })
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => instance.getBonusAmount.call(now, new BigNumber("300000000000")))
             .then((result) => assert.equal(result.valueOf(), new BigNumber("75000000000"), "bonus is not equal"))
             .then(() => instance.getBonusAmount.call(now, new BigNumber("10000000000000000")))
@@ -298,27 +353,34 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), 0, "bonus is not equal"))
     });
 
-    it("buy tokens for 1 ether", function () {
+    it("buy tokens for 1 ether", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("1000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "1000000000000000000"});
@@ -328,35 +390,42 @@ contract('Contract', function (accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
 
-    it("buy tokens for 1 ether", function () {
+    it("buy tokens for 1 ether", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("1000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-        .then(function (_instance) {
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
             instance = _instance;
         })
-        .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
-        .then(function () {
-            return instance.sendTransaction({value: "1000000000000000000", from: accounts[2]});
-        })
-        .then(Utils.receiptShouldSucceed)
-        .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
-        .then(() => Utils.balanceShouldEqualTo(instance, accounts[2], "375000000000"))
-        .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.sendTransaction({value: "1000000000000000000", from: accounts[2]});
+            })
+            .then(Utils.receiptShouldSucceed)
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "0"))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[2], "375000000000"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
     });
 
     it("set multivest address, multivest buy", async function () {
@@ -365,29 +434,36 @@ contract('Contract', function (accounts) {
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("1000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                accounts[2],
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => instance.setAllowedMultivest(accounts[3]))
             .then(Utils.receiptShouldSucceed)
 
-            await instance.multivestBuy(accounts[1], 1000000000000000000, {from: accounts[2]})
+        await instance.multivestBuy(accounts[1], 1000000000000000000, {from: accounts[2]})
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 375000000000))
 
-            await instance.multivestBuy(accounts[1], 2000000000000000000, {from: accounts[3]})
+        await instance.multivestBuy(accounts[1], 2000000000000000000, {from: accounts[3]})
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 1125000000000))
 
@@ -395,27 +471,34 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), 3000000000000000000, "should equal 3 eth"))
     });
 
-    it("buy, ico succed, ico finished, refund failed, transfer succeed", function () {
+    it("buy, ico succed, ico finished, refund failed, transfer succeed", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("300000000000000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("590000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "1000000000000000000"});
@@ -473,21 +556,29 @@ contract('Contract', function (accounts) {
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("600000000000000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await
+        instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "333333333333"});
@@ -538,7 +629,7 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), true, "refund failed"))
             .then(() => instance.refundFor(accounts[3]))
             .then(Utils.receiptShouldSucceed)
-            
+
             .then(() => instance.refund.call({from: accounts[3]}))
             .then((result) => assert.equal(result.valueOf(), false, "refund succed"))
             .then(() => instance.refund({from: accounts[3]}))
@@ -554,21 +645,29 @@ contract('Contract', function (accounts) {
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
         var acoount0Funds = 0;
         return Contract.new(
-                new BigNumber("333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("600000000000000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await
+        instance.setSalePhases(
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(function () {
                 return instance.sendTransaction({value: "333333333333"});
@@ -604,33 +703,40 @@ contract('Contract', function (accounts) {
             .catch(Utils.catchReceiptShouldFailed)
     });
 
-    it("set multivest & buy", async function() {
+    it("set multivest & buy", async function () {
         var instance;
         var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
 
         return Contract.new(
-                new BigNumber("333333333333"),
-                accounts[7],
-                new BigNumber("300000000000000"),
-                icoSince,
-                icoTill,
-                new BigNumber("600000000000000"),
-                new BigNumber("3300000000000000"),
-                "Ryfts",
-                "RFT",
-                0,
-                false
-            )
-            .then(function (_instance) {
-                instance = _instance;
-            })
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        ).then(function (_instance) {
+            instance = _instance;
+        })
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("590000000000000")
+        )
             .then(() => instance.setAllowedMultivest(accounts[0]))
             .then(Utils.receiptShouldSucceed)
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
 
-            await instance.multivestBuy(accounts[1], 10000)
+        await instance.multivestBuy(accounts[1], 10000)
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 3))
 
@@ -653,4 +759,5 @@ contract('Contract', function (accounts) {
             .catch(Utils.catchReceiptShouldFailed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 6))
     });
+
 });

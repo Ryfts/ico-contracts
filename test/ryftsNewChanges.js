@@ -1,4 +1,4 @@
-var RyftsICO = artifacts.require('./RyftsICO.sol'),
+var Ryfts = artifacts.require('./Ryfts.sol'),
     BigNumber = require('bignumber.js'),
     precision = new BigNumber(1000000000000000000),
     Utils = require("./utils");
@@ -18,36 +18,52 @@ var signAddress = web3.eth.accounts[1],
 
 function makeTransaction(instance, value) {
     "use strict";
-    var data = abi.simpleEncode("multivestBuy(bytes32,uint8,bytes32,bytes32)", h, v, r, s);
+    // var data = abi.simpleEncode("multivestBuy(bytes32,uint8,bytes32,bytes32)", h, v, r, s);
 
-    return instance.sendTransaction({value: value, data: data.toString('hex')});
+    return instance.sendTransaction({value: value});
 }
 
 contract('ICO changes to multivest', function (accounts) {
-
-    it('create contract, buy tokens with correct sign address, get balance, check price', async function () {
-        var icoSince = parseInt(new Date().getTime() / 1000);
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
-
-        let instance = await RyftsICO.new(
-            new BigNumber("333333333333"),
+    let instance;
+    beforeEach(async function () {
+        instance = await  Ryfts.new(
             accounts[7],
             new BigNumber("300000000000000"),
-            icoSince,
-            icoTill,
-            new BigNumber("600000000000000"),
             new BigNumber("3300000000000000"),
             "Ryfts",
             "RFT",
-            signAddress,
+            0,
             false
         )
-            // await instance.setAllowedMultivest(accounts[0])
-            await instance.setMultivestStatus(true)
-                .then(() => makeTransaction(instance, new BigNumber("1000000000000000000").valueOf()))
+    });
+
+    it('create contract, buy tokens with correct sign address, get balance, check price', async function () {
+        var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+        var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
+
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            preIcoSince,
+            preIcoTill,
+            70000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("200000000000000")
+        )
+        // await instance.setWhitelistStatus(true)
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
+            .then(function () {
+                return instance.sendTransaction({value: 1000000000000000000});
+            })
+
                 .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000375"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2624999999999625"))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "300000000000300"))
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2699999999999700"))
             .then(function () {
                 return instance.collectedEthers.call();
             })
@@ -57,25 +73,27 @@ contract('ICO changes to multivest', function (accounts) {
     });
 
     it('create contract, buy tokens, setMinMax contribution', async function () {
-        var icoSince = parseInt(new Date().getTime() / 1000);
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
+        var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+        var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
-        let instance = await RyftsICO.new(
+        await instance.setSalePhases(
             new BigNumber("333333333333"),
-            accounts[7],
-            new BigNumber("300000000000000"),
+            preIcoSince,
+            preIcoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
             icoSince,
             icoTill,
-            new BigNumber("600000000000000"),
-            new BigNumber("3300000000000000"),
-            "Ryfts",
-            "RFT",
-            signAddress,
-            false
+            new BigNumber("590000000000000")
         )
         // await instance.setAllowedMultivest(accounts[0])
-        await instance.setMultivestStatus(true)
-        await instance.setMinMaxContribution( web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
+        await instance.setWhitelistStatus(true)
+        await instance.addToWhitelist(0, accounts[0])
+        await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
             .then(() => makeTransaction(instance, new BigNumber("1000000000000000000").valueOf()))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
@@ -84,70 +102,75 @@ contract('ICO changes to multivest', function (accounts) {
             .then(() => makeTransaction(instance, web3.toWei('3.1', 'ether').valueOf()))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
-        await instance.setMinMaxContribution( web3.toWei('0', 'ether'),  web3.toWei('0', 'ether'))
+        await instance.setMinMaxContribution(0, web3.toWei('0', 'ether'),  web3.toWei('0', 'ether'))
             .then(() => makeTransaction(instance, new BigNumber("1000000000000000000").valueOf()))
             .then(Utils.receiptShouldSucceed)
     });
 
     it('create contract, buy tokens buy old contribution', async function () {
-        var icoSince = parseInt(new Date().getTime() / 1000);
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
+        var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+        var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
-        let instance = await RyftsICO.new(
-            new BigNumber("333333333333333"),
-            accounts[7],
-            new BigNumber("300000000000000"),
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            preIcoSince,
+            preIcoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
             icoSince,
             icoTill,
-            new BigNumber("600000000000000"),
-            new BigNumber("3300000000000000"),
-            "Ryfts",
-            "RFT",
-            signAddress,
-            false
+            new BigNumber("590000000000000")
         )
             await instance.setAllowedMultivest(accounts[0])
-            await instance.setMultivestStatus(true)
-            await instance.setMinMaxContribution( web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
+            await instance.setWhitelistStatus(true)
+        await instance.addToWhitelist(0, accounts[0])
+            await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
             await instance.multivestBuy(accounts[0], web3.toWei('2', 'ether').valueOf())
             .then(Utils.receiptShouldSucceed)
-        //2*10^18 * (10 ^ 8) / 333333333333 + 0.25 bouns
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("750000000000").valueOf()))
+        //2*10^18 * (10 ^ 8) / 333333333333
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("600000000000600").valueOf()))
         });
 
-    it('should not be able to buy without multivest', async function () {
-        var icoSince = parseInt(new Date().getTime() / 1000);
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
+    it('should not be able to buy without whitelist', async function () {
+        var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+        var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
-        let instance = await RyftsICO.new(
-            new BigNumber("333333333333333"),
-            accounts[7],
-            new BigNumber("300000000000000"),
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            preIcoSince,
+            preIcoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
             icoSince,
             icoTill,
-            new BigNumber("600000000000000"),
-            new BigNumber("3300000000000000"),
-            "Ryfts",
-            "RFT",
-            signAddress,
-            false
+            new BigNumber("590000000000000")
         )
         await instance.setAllowedMultivest(accounts[0])
-        await instance.setMultivestStatus(true)
-        await instance.setMinMaxContribution( web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
+        await instance.setWhitelistStatus(true)
+        await instance.addToWhitelist(0, accounts[0])
+        await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
             .then(() => makeTransaction(instance, web3.toWei('2', 'ether')))
             .then(Utils.receiptShouldSucceed)
-            //2*10^18 * (10 ^ 8) / 333333333333 + 0.25 bouns
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("750000000000").valueOf()))
-            .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf()}))
+            //2*10^18 * (10 ^ 8) / 333333333333
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("600000000000600").valueOf()))
+            .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf(), from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
-        await instance.setMultivestStatus(false)
-            .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf()}))
+        await instance.setWhitelistStatus(false)
+            .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf(), from: accounts[1]}))
             .then(Utils.receiptShouldSucceed)
     });
+
 });

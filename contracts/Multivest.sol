@@ -38,28 +38,9 @@ contract Multivest is Ownable {
         allowedMultivests[_address] = false;
     }
 
-    function multivestBuy(
-        bytes32 _hash,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
-    ) public payable {
-        require(_hash == keccak256(msg.sender));
-        require(allowedMultivests[verify(_hash, _v, _r, _s)] == true);
-
-        bool status = buy(msg.sender, block.timestamp, msg.value);
-        require(status == true);
-    }
-
     function multivestBuy(address holder, uint256 value) public onlyPayloadSize(2) onlyAllowedMultivests {
         bool status = buy(holder, block.timestamp, value);
         require(status == true);
-    }
-
-    function verify(bytes32 _hash, uint8 _v, bytes32 _r, bytes32 _s) internal returns(address) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-
-        return ecrecover(keccak256(prefix, _hash), _v, _r, _s);
     }
 
     function buy(address _address, uint256 time, uint256 value) internal returns (bool);
