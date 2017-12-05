@@ -56,6 +56,13 @@ contract Ryfts is ERC20, Multivest {
         Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
     }
 
+    function() public payable {
+        bool status = buy(msg.sender, block.timestamp, msg.value);
+        require(status == true);
+
+        sentEthers[msg.sender] += msg.value;
+    }
+
     function setSalePhases(
         uint256 _preIcoTokenPrice,
         uint256 _preIcoSince,
@@ -101,13 +108,6 @@ contract Ryfts is ERC20, Multivest {
                 false
             )
         );
-    }
-
-    function() public payable {
-        bool status = buy(msg.sender, block.timestamp, msg.value);
-        require(status == true);
-
-        sentEthers[msg.sender] += msg.value;
     }
 
     function getCurrentPhase(uint256 _time) public constant returns (uint8) {
@@ -242,6 +242,33 @@ contract Ryfts is ERC20, Multivest {
         phase.maxContribution = _max;
     }
 
+    function calculateTokensAmount(address _address, uint256 _time, uint256 _value) public constant returns(uint256) {
+        uint8 currentPhase = getCurrentPhase(_time);
+        Phase storage phase = phases[currentPhase];
+
+        if (true == whitelistActive && phase.whitelist[_address] == false) {
+            return 0;
+        }
+
+        if (_time < phase.since) {
+            return 0;
+        }
+
+        if (_time > phase.till) {
+            return 0;
+        }
+
+        if (phase.isFinished) {
+            return 0;
+        }
+
+        if (false == checkValuePermission(currentPhase, _value)) {
+            return 0;
+        }
+
+        return _value * (uint256(10) ** decimals) / phase.price;
+    }
+
     // @return true if sale period is active
     function isActive(uint8 _phaseId) public constant returns (bool) {
         require(phases.length > _phaseId);
@@ -260,45 +287,24 @@ contract Ryfts is ERC20, Multivest {
     }
 
     /* solhint-disable code-complexity */
-    function buy(address _address, uint256 time, uint256 _value) internal returns (bool) {
+    function buy(address _address, uint256 _time, uint256 _value) internal returns (bool) {
         if (locked == true) {
             return false;
         }
-        uint8 currentPhase = getCurrentPhase(time);
+        uint8 currentPhase = getCurrentPhase(_time);
         Phase storage phase = phases[currentPhase];
-
-        if (true == whitelistActive && phase.whitelist[_address] == false) {
-            return false;
-        }
-
-        if (time < phase.since) {
-            return false;
-        }
-
-        if (time > phase.till) {
-            return false;
-        }
-
-        if (phase.isFinished) {
-            return false;
-        }
-
         if (_value == 0) {
             return false;
         }
 
-        if (false == checkValuePermission(currentPhase, _value)) {
-            return false;
-        }
-
-        uint256 amount = _value * (uint256(10) ** decimals) / phase.price;
+        uint256 amount = calculateTokensAmount(_address, _time, _value);
 
         if (amount == 0) {
             return false;
         }
 
         phase.soldTokens += amount;
-        uint256 totalAmount = amount + getBonusAmount(block.timestamp, amount);
+        uint256 totalAmount = amount + getBonusAmount(_time, amount);
 
         if (balanceOf[this] < totalAmount) {
             return false;
