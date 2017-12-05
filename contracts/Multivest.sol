@@ -43,7 +43,7 @@ contract Multivest is Ownable {
         uint8 _v,
         bytes32 _r,
         bytes32 _s
-    ) public payable onlyAllowedMultivests {
+    ) public payable {
         require(_hash == keccak256(msg.sender));
         require(allowedMultivests[verify(_hash, _v, _r, _s)] == true);
 

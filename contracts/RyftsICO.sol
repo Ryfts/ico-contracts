@@ -186,7 +186,7 @@ contract RyftsICO is ERC20, Multivest {
         collectedEthers += _value;
 
         Contribution(_address, _value, totalAmount);
-
+        Transfer(this, _address, totalAmount);
         return true;
     }
     /* solhint-enable code-complexity */

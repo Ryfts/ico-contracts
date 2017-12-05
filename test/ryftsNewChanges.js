@@ -42,10 +42,8 @@ contract('ICO changes to multivest', function (accounts) {
             signAddress,
             false
         )
-            await instance.setAllowedMultivest(accounts[0])
+            // await instance.setAllowedMultivest(accounts[0])
             await instance.setMultivestStatus(true)
-                .then(() => instance.allowedMultivests.call(accounts[0]))
-                .then((result) => assert.equal(result.valueOf(), true, "should be true"))
                 .then(() => makeTransaction(instance, new BigNumber("1000000000000000000").valueOf()))
                 .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000375"))
@@ -75,11 +73,9 @@ contract('ICO changes to multivest', function (accounts) {
             signAddress,
             false
         )
-        await instance.setAllowedMultivest(accounts[0])
+        // await instance.setAllowedMultivest(accounts[0])
         await instance.setMultivestStatus(true)
         await instance.setMinMaxContribution( web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
-            .then(() => instance.allowedMultivests.call(accounts[0]))
-            .then((result) => assert.equal(result.valueOf(), true, "should be true"))
             .then(() => makeTransaction(instance, new BigNumber("1000000000000000000").valueOf()))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
