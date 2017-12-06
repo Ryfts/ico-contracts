@@ -203,6 +203,14 @@ contract Ryfts is ERC20, Multivest {
                     isRefundAllowed = true;
                 }
             }
+            if (_phaseId == 0) {
+                uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
+                if (unsoldTokens > 0) {
+                    transferUnusedTokensToICO(unsoldTokens);
+                    phase.allocatedTokens = phase.soldTokens;
+                }
+
+            }
             phase.isFinished = true;
 
         }
@@ -354,6 +362,11 @@ contract Ryfts is ERC20, Multivest {
         Refund(holder, refundEthers, refundTokens);
 
         return true;
+    }
+
+    function transferUnusedTokensToICO(uint256 _unsoldPreICO) internal {
+        Phase storage phase = phases[1];
+        phase.allocatedTokens += _unsoldPreICO;
     }
 
     function checkValuePermission(uint8 _phaseId, uint256 _value) internal returns (bool) {
