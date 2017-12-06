@@ -194,7 +194,7 @@ contract Ryfts is ERC20, Multivest {
             return true;
         }
 
-        if (block.timestamp > phase.till || balanceOf[this] == 0) {
+        if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf[this] == 0) {
             if (_phaseId == 1) {
                 balanceOf[this] = 0;
                 if (phase.soldTokens >= phase.goalMinSoldTokens) {
@@ -311,8 +311,13 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        phase.soldTokens += amount;
         uint256 totalAmount = amount + getBonusAmount(_time, amount);
+
+        if (phase.allocatedTokens < phase.soldTokens + totalAmount) {
+            return false;
+        }
+
+        phase.soldTokens += amount;
 
         if (balanceOf[this] < totalAmount) {
             return false;
@@ -334,10 +339,11 @@ contract Ryfts is ERC20, Multivest {
     /* solhint-enable code-complexity */
 
     function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
-        require(false == isActive(0));
-        require(false == isActive(1));
         Phase storage phase = phases[1];
-        require(phase.isFinished == true && isRefundAllowed == false);
+        if (block.timestamp > phase.since) {
+            require(false == isActive(1));
+            require(phase.isFinished == true && isRefundAllowed == false);
+        }
 
         return super.transferInternal(_from, _to, _value);
     }
