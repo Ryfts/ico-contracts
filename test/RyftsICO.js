@@ -4,7 +4,8 @@ var Utils = require("./utils");
 
 var BigNumber = require('bignumber.js');
 var precision = new BigNumber("1000000000000000000");
-
+var preIcoSince = parseInt(new Date().getTime() / 1000) - 3600 * 2;
+var preIcoTill = parseInt(new Date().getTime() / 1000) - 3605;
 /*
  + create contract & check token info
  - transfer tokens, add reward, transfer tokens, claim, balance should equal zero
@@ -13,12 +14,9 @@ var precision = new BigNumber("1000000000000000000");
  */
 
 contract('Contract', function (accounts) {
-    it("create contract & check token info", async function () {
-        var instance;
-        var icoSince = parseInt(new Date().getTime() / 1000);
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
-
-        return Contract.new(
+    let instance;
+    beforeEach(async function () {
+        instance = await  Contract.new(
             accounts[7],
             new BigNumber("300000000000000"),
             new BigNumber("3300000000000000"),
@@ -26,13 +24,17 @@ contract('Contract', function (accounts) {
             "RFT",
             0,
             false
-        ).then(function (_instance) {
-            instance = _instance;
-        })
+        )
+    });
+
+    it("create contract & check token info", async function () {
+        var icoSince = parseInt(new Date().getTime() / 1000);
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
+
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -53,37 +55,18 @@ contract('Contract', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), new BigNumber("3300000000000000"), "total supply is not equal"))
             .then(() => instance.locked.call())
             .then((result) => assert.equal(result.valueOf(), false, "locked is not equal"))
-            .then(() => instance.icoSince.call())
-            .then((result) => assert.equal(result.valueOf(), icoSince, "preIcoSince is not equal"))
-            .then(() => instance.icoTill.call())
-            .then((result) => assert.equal(result.valueOf(), icoTill, "preIcoSince is not equal"))
-            .then(() => instance.goalMinSoldTokens.call())
-            .then((result) => assert.equal(result.valueOf(), new BigNumber("270000000000000"), "minIcoGoalTokens is not equal"))
-            .then(() => instance.tokenPrice.call())
-            .then((result) => assert.equal(result.valueOf(), new BigNumber("333333333333333"), "tokenPrice is not equal"))
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], new BigNumber("300000000000000").valueOf()));
     });
 
     it("create contract, buy tokens, get balance", async function () {
-        var instance;
-        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
-        return Contract.new(
-            accounts[7],
-            new BigNumber("300000000000000"),
-            new BigNumber("3300000000000000"),
-            "Ryfts",
-            "RFT",
-            0,
-            false
-        ).then(function (_instance) {
-            instance = _instance;
-        })
+        var icoSince = parseInt(new Date().getTime() / 1000);
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
+
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -125,8 +108,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -169,8 +152,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -255,8 +238,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -314,8 +297,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -355,8 +338,10 @@ contract('Contract', function (accounts) {
 
     it("buy tokens for 1 ether", async function () {
         var instance;
-        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+        var preIcoSince = parseInt(new Date().getTime() / 1000) - 3600 * 2;
+        var preIcoTill = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
         var acoount0Funds = 0;
         return Contract.new(
             accounts[7],
@@ -371,8 +356,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -392,8 +377,11 @@ contract('Contract', function (accounts) {
 
     it("buy tokens for 1 ether", async function () {
         var instance;
-        var icoSince = parseInt(new Date().getTime() / 1000) - 3600;
-        var icoTill = parseInt(new Date().getTime() / 1000) + 3600 * 8;
+
+        var preIcoSince = parseInt(new Date().getTime() / 1000) - 3600 * 2;
+        var preIcoTill = parseInt(new Date().getTime() / 1000) - 3600;
+        var icoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
         var acoount0Funds = 0;
         return Contract.new(
             accounts[7],
@@ -408,8 +396,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoSince,
             70000000000000,
             0,
             0,
@@ -446,8 +434,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -489,8 +477,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             10000000000000,
             0,
             0,
@@ -569,8 +557,8 @@ contract('Contract', function (accounts) {
         await
         instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -658,8 +646,8 @@ contract('Contract', function (accounts) {
         await
         instance.setSalePhases(
             new BigNumber("333333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             70000000000000,
             0,
             0,
@@ -721,8 +709,8 @@ contract('Contract', function (accounts) {
         })
         await instance.setSalePhases(
             new BigNumber("333333333333"),
-            icoSince,
-            icoTill,
+            preIcoSince,
+            preIcoTill,
             10000000000000,
             0,
             0,
@@ -759,5 +747,4 @@ contract('Contract', function (accounts) {
             .catch(Utils.catchReceiptShouldFailed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 6))
     });
-
 });

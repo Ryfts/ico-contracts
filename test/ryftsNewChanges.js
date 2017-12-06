@@ -1,4 +1,5 @@
 var Ryfts = artifacts.require('./Ryfts.sol'),
+    RyftsTest = artifacts.require('./RyftsTest.sol'),
     BigNumber = require('bignumber.js'),
     precision = new BigNumber(1000000000000000000),
     Utils = require("./utils");
@@ -172,5 +173,87 @@ contract('ICO changes to multivest', function (accounts) {
             .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf(), from: accounts[1]}))
             .then(Utils.receiptShouldSucceed)
     });
+
+    it('check ValuePermission', async function () {
+        var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+        var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+        var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+        var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
+
+        instance = await  RyftsTest.new(
+            accounts[7],
+            new BigNumber("300000000000000"),
+            new BigNumber("3300000000000000"),
+            "Ryfts",
+            "RFT",
+            0,
+            false
+        )
+
+        await instance.setSalePhases(
+            new BigNumber("333333333333"),
+            preIcoSince,
+            preIcoTill,
+            10000000000000,
+            0,
+            0,
+            new BigNumber("333333333333"),
+            icoSince,
+            icoTill,
+            new BigNumber("590000000000000")
+        )
+        await instance.setAllowedMultivest(accounts[0])
+        await instance.setWhitelistStatus(true)
+        await instance.addToWhitelist(0, accounts[0])
+        await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
+        let testPersion = await instance.checkValuePermissionTest.call(0, web3.toWei('2', 'ether'))
+        assert.equal(testPersion.valueOf(), true, "testPersion is not equal");
+         testPersion = await instance.checkValuePermissionTest.call(0, web3.toWei('3', 'ether'))
+        assert.equal(testPersion.valueOf(), true, "testPersion is not equal");
+         testPersion = await instance.checkValuePermissionTest.call(0, web3.toWei('1', 'ether'))
+        assert.equal(testPersion.valueOf(), false, "testPersion is not equal");
+        testPersion = await instance.checkValuePermissionTest.call(0, web3.toWei('4', 'ether'))
+        assert.equal(testPersion.valueOf(), false, "testPersion is not equal");
+        testPersion = await instance.checkValuePermissionTest.call(1, web3.toWei('4', 'ether'))
+        assert.equal(testPersion.valueOf(), true, "testPersion is not equal");
+        await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('0', 'ether'))
+        assert.equal(testPersion.valueOf(), true, "testPersion is not equal");
+    });
+
+    // it('should not be able to buy without whitelist', async function () {
+    //     var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
+    //     var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
+    //     var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
+    //     var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
+    //
+    //     await instance.setSalePhases(
+    //         new BigNumber("333333333333"), //_preIcoTokenPrice
+    //         preIcoSince,// _preIcoSince
+    //         preIcoTill, //_preIcoTill
+    //         10000000000000, //_allocatedTokensForPreICO
+    //         0, //_minPreIcoContribution
+    //         0, //_maxPreIcoContribution
+    //         new BigNumber("333333333333"), //_icoTokenPrice
+    //         icoSince, //_icoSince
+    //         icoTill, //_icoTill
+    //         new BigNumber("590000000000000") //_goalIcoMinSoldTokens
+    //     )
+    //     await instance.setAllowedMultivest(accounts[0])
+    //     await instance.setWhitelistStatus(true)
+    //     await instance.addToWhitelist(0, accounts[0])
+    //     await instance.setMinMaxContribution(0, web3.toWei('2', 'ether'),  web3.toWei('3', 'ether'))
+    //         .then(() => instance.allowedMultivests.call(accounts[0]))
+    //         .then((result) => assert.equal(result.valueOf(), true, "should be true"))
+    //         .then(() => makeTransaction(instance, web3.toWei('2', 'ether')))
+    //         .then(Utils.receiptShouldSucceed)
+    //         //2*10^18 * (10 ^ 8) / 333333333333
+    //         .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("600000000000600").valueOf()))
+    //         .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf(), from: accounts[1]}))
+    //         .then(Utils.receiptShouldFailed)
+    //         .catch(Utils.catchReceiptShouldFailed)
+    //     await instance.setWhitelistStatus(false)
+    //         .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether').valueOf(), from: accounts[1]}))
+    //         .then(Utils.receiptShouldSucceed)
+    // });
 
 });

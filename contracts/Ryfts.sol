@@ -80,7 +80,7 @@ contract Ryfts is ERC20, Multivest {
         require(_allocatedTokensForPreICO < allocatedTokensForSale);
         require(_goalIcoMinSoldTokens <= allocatedTokensForSale - _allocatedTokensForPreICO);
         require((_preIcoSince < _preIcoTill) && (_icoSince < _icoTill) && (_preIcoTill <= _icoSince));
-        require(_minPreIcoContribution <= _minPreIcoContribution);
+        require(_minPreIcoContribution <= _maxPreIcoContribution || _maxPreIcoContribution == 0);
         phasesSet = true;
         phases.push(
             Phase(
@@ -236,7 +236,7 @@ contract Ryfts is ERC20, Multivest {
     function setMinMaxContribution(uint8 _phaseId, uint256 _min, uint256 _max) public onlyOwner {
         require(phases.length > _phaseId);
         Phase storage phase = phases[_phaseId];
-        require(_min <= _max);
+        require(_min <= _max || _max == 0);
 
         phase.minContribution = _min;
         phase.maxContribution = _max;
@@ -372,7 +372,7 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        if (_value < phase.minContribution && phase.maxContribution != 0) {
+        if (_value < phase.minContribution) {
             return false;
         }
 
