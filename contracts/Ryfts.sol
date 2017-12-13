@@ -258,14 +258,6 @@ contract Ryfts is ERC20, Multivest {
             return 0;
         }
 
-        if (_time < phase.since) {
-            return 0;
-        }
-
-        if (_time > phase.till) {
-            return 0;
-        }
-
         if (phase.isFinished) {
             return 0;
         }
