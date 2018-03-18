@@ -367,7 +367,7 @@ contract Ryfts is ERC20, Multivest {
         phase.allocatedTokens += _unsoldPreICO;
     }
 
-    function checkValuePermission(uint8 _phaseId, uint256 _value) internal returns (bool) {
+    function checkValuePermission(uint8 _phaseId, uint256 _value) internal view returns (bool) {
         require(phases.length > _phaseId);
         Phase storage phase = phases[_phaseId];
 
