@@ -80,7 +80,7 @@ contract Ryfts is ERC20, Multivest {
         require(_allocatedTokensForPreICO < allocatedTokensForSale);
         require(_goalIcoMinSoldTokens <= allocatedTokensForSale - _allocatedTokensForPreICO);
         require((_preIcoSince < _preIcoTill) && (_icoSince < _icoTill) && (_preIcoTill <= _icoSince));
-        require(_minPreIcoContribution <= _maxPreIcoContribution || _maxPreIcoContribution == 0);
+        require(_minPreIcoContribution <= _maxPreIcoContribution);
         phasesSet = true;
         phases.push(
             Phase(
