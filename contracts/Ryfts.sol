@@ -42,7 +42,7 @@ contract Ryfts is ERC20, Multivest {
         bool _locked
     )
         public
-        ERC20(_initialSupply, _tokenName, 8, _tokenSymbol, false, _locked)
+        ERC20(_initialSupply, _tokenName, 18, _tokenSymbol, false, _locked)
         Multivest(_multivestMiddleware)
     {
         standard = "Ryfts 0.1";
