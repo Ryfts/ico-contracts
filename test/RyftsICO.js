@@ -15,8 +15,8 @@ var preIcoTill = parseInt(new Date().getTime() / 1000) - 3605;
 
 contract('RyftsICO', function (accounts) {
     let instance;
-    var totalAmount = new BigNumber("33000000") * precision; // supply
-    var reservedAmount = new BigNumber("3000000") * precision;
+    var totalAmount = new BigNumber("33000000").mul(precision); // supply
+    var reservedAmount = new BigNumber("3000000").mul(precision);
     var sellAmount = totalAmount - reservedAmount;
 
     beforeEach(async function () {
