@@ -15,7 +15,7 @@ function receiptShouldSucceed(result) {
             }
         }
         else {
-            console.log('gasUsed',result.receipt.gasUsed, "tx cost", getTxCost(result));
+            // console.log('gasUsed',result.receipt.gasUsed, "tx cost", getTxCost(result));
             resolve();
         }
     });
@@ -25,7 +25,9 @@ function receiptShouldFailed(result) {
     return new Promise(function(resolve, reject) {
         var receipt = web3.eth.getTransaction(result.tx);
 
-        if(result.receipt.gasUsed == gasToUse) {
+        conso
+
+        if (result.receipt.gasUsed == gasToUse) {
             resolve();
         }
         else {
@@ -43,6 +45,8 @@ function catchReceiptShouldFailed(err) {
     if (err.message.indexOf("invalid opcode") == -1) {
         throw err;
     }
+
+    return assert.isTrue(true);
 }
 
 function balanceShouldEqualTo(instance, address, expectedBalance, notCall) {

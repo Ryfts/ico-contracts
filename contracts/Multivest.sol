@@ -1,7 +1,6 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.21;
 
-
-import "./Ownable.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract Multivest is Ownable {
@@ -9,8 +8,6 @@ contract Multivest is Ownable {
     mapping(address => bool) public allowedMultivests;
 
     /* events */
-    event MultivestSet(address multivest);
-    event MultivestUnset(address multivest);
     event Contribution(address _holder, uint256 value, uint256 tokens);
     
     /* modifier */

@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.21;
 
 
 import "./ERC20.sol";
@@ -42,7 +42,7 @@ contract Ryfts is ERC20, Multivest {
         bool _locked
     )
         public
-        ERC20(_initialSupply, _tokenName, 8, _tokenSymbol, false, _locked)
+        ERC20(_initialSupply, _tokenName, 18, _tokenSymbol, false, _locked)
         Multivest(_multivestMiddleware)
     {
         standard = "Ryfts 0.1";
@@ -53,7 +53,7 @@ contract Ryfts is ERC20, Multivest {
 
         allocatedTokensForSale = balanceOf[this];
     
-        Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
+        emit Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
     }
 
     function() public payable {
@@ -80,7 +80,7 @@ contract Ryfts is ERC20, Multivest {
         require(_allocatedTokensForPreICO < allocatedTokensForSale);
         require(_goalIcoMinSoldTokens <= allocatedTokensForSale - _allocatedTokensForPreICO);
         require((_preIcoSince < _preIcoTill) && (_icoSince < _icoTill) && (_preIcoTill <= _icoSince));
-        require(_minPreIcoContribution <= _maxPreIcoContribution || _maxPreIcoContribution == 0);
+        require(_minPreIcoContribution <= _maxPreIcoContribution);
         phasesSet = true;
         phases.push(
             Phase(
@@ -231,9 +231,9 @@ contract Ryfts is ERC20, Multivest {
         Phase storage phase = phases[1];
         if (phase.till <= block.timestamp) {
             require(phase.isFinished == true && isRefundAllowed == false);
-            owner.transfer(this.balance);
+            owner.transfer(address(this).balance);
         } else {
-            owner.transfer(this.balance);
+            owner.transfer(address(this).balance);
         }
     }
 
@@ -324,8 +324,8 @@ contract Ryfts is ERC20, Multivest {
 
         collectedEthers += _value;
 
-        Contribution(_address, _value, totalAmount);
-        Transfer(this, _address, totalAmount);
+        emit Contribution(_address, _value, totalAmount);
+        emit Transfer(this, _address, totalAmount);
         return true;
     }
     /* solhint-enable code-complexity */
@@ -357,7 +357,7 @@ contract Ryfts is ERC20, Multivest {
             holder.transfer(refundEthers);
         }
 
-        Refund(holder, refundEthers, refundTokens);
+        emit Refund(holder, refundEthers, refundTokens);
 
         return true;
     }
@@ -367,7 +367,7 @@ contract Ryfts is ERC20, Multivest {
         phase.allocatedTokens += _unsoldPreICO;
     }
 
-    function checkValuePermission(uint8 _phaseId, uint256 _value) internal returns (bool) {
+    function checkValuePermission(uint8 _phaseId, uint256 _value) internal view returns (bool) {
         require(phases.length > _phaseId);
         Phase storage phase = phases[_phaseId];
 

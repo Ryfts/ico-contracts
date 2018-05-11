@@ -46,11 +46,8 @@ contract('ERC20', function(accounts) {
         })
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, 0))
-            .then(function() {
-                return instance.transfer(accounts[1], 1000);
-            })
-            .then(Utils.receiptShouldFailed)
-            .catch(Utils.catchReceiptShouldFailed)
+            .then(() => instance.transfer(accounts[1], 1000))
+            .catch(() => assert.isTrue(true))
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 0))
             .then(() => Utils.balanceShouldEqualTo(instance, instance.address, 0))

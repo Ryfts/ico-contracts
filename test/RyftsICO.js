@@ -3,7 +3,7 @@ var Contract = artifacts.require("./Ryfts.sol");
 var Utils = require("./utils");
 
 var BigNumber = require('bignumber.js');
-var precision = new BigNumber("1000000000000000000");
+var precision = new BigNumber("1000000000000000000");   // 18 decimals
 var preIcoSince = parseInt(new Date().getTime() / 1000) - 3600 * 2;
 var preIcoTill = parseInt(new Date().getTime() / 1000) - 3605;
 /*
@@ -13,13 +13,17 @@ var preIcoTill = parseInt(new Date().getTime() / 1000) - 3605;
  - test buy over mutlivest
  */
 
-contract('Contract', function (accounts) {
+contract('RyftsICO', function (accounts) {
     let instance;
+    var totalAmount = new BigNumber("33000000") * precision; // supply
+    var reservedAmount = new BigNumber("3000000") * precision;
+    var sellAmount = totalAmount - reservedAmount;
+
     beforeEach(async function () {
         instance = await  Contract.new(
             accounts[7],
-            new BigNumber("300000000000000"),
-            new BigNumber("3300000000000000"),
+            reservedAmount,
+            totalAmount,
             "Ryfts",
             "RFT",
             0,
@@ -50,44 +54,46 @@ contract('Contract', function (accounts) {
             .then(() => instance.symbol.call())
             .then((result) => assert.equal(result.valueOf(), "RFT", "token symbol is not equal"))
             .then(() => instance.decimals.call())
-            .then((result) => assert.equal(result.valueOf(), 8, "precision is not equal"))
+            .then((result) => assert.equal(result.valueOf(), 18, "precision is not equal"))
             .then(() => instance.totalSupply.call())
-            .then((result) => assert.equal(result.valueOf(), new BigNumber("3300000000000000"), "total supply is not equal"))
+            .then((result) => assert.equal(result.valueOf(), totalAmount, "total supply is not equal"))
             .then(() => instance.locked.call())
             .then((result) => assert.equal(result.valueOf(), false, "locked is not equal"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], new BigNumber("300000000000000").valueOf()));
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, sellAmount.valueOf()))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[7], reservedAmount.valueOf()));
     });
 
-    it("create contract, buy tokens, get balance", async function () {
+    it("create contract, buy tokens, get balance", function () {
         var icoSince = parseInt(new Date().getTime() / 1000);
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
-        await instance.setSalePhases(
-            new BigNumber("333333333333333"),
+        return instance.setSalePhases(
+            new BigNumber("500000000000000000"),   // 0.5 ETH
             preIcoSince,
             preIcoTill,
-            70000000000000,
+            700000000000000000000000,
             0,
             0,
-            new BigNumber("333333333333333"),
+            new BigNumber("500000000000000000"),
             icoSince,
             icoTill,
-            new BigNumber("200000000000000")
+            new BigNumber("2000") * precision
         )
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, new BigNumber("3000000000000000").valueOf()))
-            .then(function () {
-                return instance.sendTransaction({value: "1000000000000000000"});
-            })
+            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, sellAmount.valueOf()))
+            .then(() => instance.sendTransaction({value: "1000000000000000000", from: accounts[0]}))
+            .catch(() => assert.isTrue(false, "Error occurred in default function"))
             .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], "375000000000"))
-            .then(() => Utils.balanceShouldEqualTo(instance, instance.address, "2999625000000000"))
+            .then(() => async function() {
+                const withBonus = await instance.getBonusAmount(new Date().getTime(), 2 * precision);
+                await Utils.balanceShouldEqualTo(instance, accounts[0], withBonus);
+                return Utils.balanceShouldEqualTo(instance, instance.address, sellAmount - withBonus);
+            })
             .then(function () {
                 return instance.collectedEthers.call();
             })
             .then(function (result) {
                 assert.equal(result.valueOf(), "1000000000000000000", "collected amount is not equal");
-            })
+            });
     });
 
     it("should  not be able to buy tokens before ICO", async function () {
