@@ -3,11 +3,6 @@ pragma solidity 0.4.21;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract TokenRecipient {
-    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public;
-}
-
-
 /*
     ERC20 compatible smart contract
 */
@@ -89,20 +84,6 @@ contract ERC20 is Ownable {
         emit Approval(msg.sender, _spender, _value);
 
         return true;
-    }
-
-    /* Approve and then communicate the approved contract in a single tx */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
-        if (locked) {
-            return false;
-        }
-
-        TokenRecipient spender = TokenRecipient(_spender);
-
-        if (approve(_spender, _value)) {
-            spender.receiveApproval(msg.sender, _value, this, _extraData);
-            return true;
-        }
     }
 
     /* A contract attempts to get the coins */

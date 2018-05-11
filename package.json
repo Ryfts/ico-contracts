@@ -10,13 +10,13 @@
     "ganache-cli": "^6.1.0",
     "husky": "^0.14.3",
     "solhint": "^1.1.10",
-    "solidity-coverage": "^0.2.7",
+    "solidity-coverage": "^0.5.0",
     "zeppelin-solidity": "^1.9.0"
   },
   "scripts": {
     "precommit": "npm run lint && npm run test && npm run coverage",
     "pretest": "node ./node_modules/ganache-cli/build/cli.node.js > /dev/null 2>&1 &",
-    "test": "truffle test",
+    "test": "node ./node_modules/truffle/build/cli.bundled.js test",
     "posttest": "ps | grep ethereumjs-testrpc | grep -v grep | awk '{print $1}' | xargs -J % kill %",
     "coverage": "./node_modules/.bin/solidity-coverage",
     "lint": "node ./node_modules/solhint/solhint.js contracts/*.sol"
@@ -25,5 +25,8 @@
     "globals": [
       "web3"
     ]
+  },
+  "devDependencies": {
+    "truffle": "^4.1.5"
   }
 }
