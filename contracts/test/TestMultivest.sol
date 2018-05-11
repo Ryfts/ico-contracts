@@ -1,10 +1,11 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.21;
 
-import '../Multivest.sol';
-import '../ERC20.sol';
+import "../Multivest.sol";
+import "../ERC20.sol";
+
 
 contract TestMultivest is Multivest, ERC20 {
-    function TestMultivest(address allowedMultivest)
+    function TestMultivest(address allowedMultivest) public
         ERC20(
             1000000,
             "TEST",

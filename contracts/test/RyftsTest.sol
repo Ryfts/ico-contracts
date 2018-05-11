@@ -1,7 +1,7 @@
-pragma solidity ^0.4.0;
+pragma solidity 0.4.21;
 
 
-import '../Ryfts.sol';
+import "../Ryfts.sol";
 
 
 contract RyftsTest is Ryfts {
@@ -13,13 +13,13 @@ contract RyftsTest is Ryfts {
     string _tokenSymbol,
     address _multivestMiddleware,
     bool _locked
-    )
+    ) public
     Ryfts(_reserveAccount, _reserveAmount, _initialSupply, _tokenName, _tokenSymbol, _multivestMiddleware, _locked)
     {
 
     }
 
-    function checkValuePermissionTest(uint8 _phaseId, uint256 _value) public returns (bool){
+    function checkValuePermissionTest(uint8 _phaseId, uint256 _value) public returns (bool) {
         return checkValuePermission(_phaseId, _value);
     }
 }

@@ -1,6 +1,6 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.21;
 
-import "./Ownable.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract TokenRecipient {
@@ -86,7 +86,7 @@ contract ERC20 is Ownable {
 
         allowance[msg.sender][_spender] = _value;
 
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
 
         return true;
     }
@@ -126,7 +126,7 @@ contract ERC20 is Ownable {
 
     function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
         if (_value == 0) {
-            Transfer(_from, _to, 0);
+            emit Transfer(_from, _to, 0);
 
             return true;
         }
@@ -142,7 +142,7 @@ contract ERC20 is Ownable {
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
 
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
 
         return true;
     }

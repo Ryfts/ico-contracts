@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.21;
 
 
 import "./ERC20.sol";
@@ -231,9 +231,9 @@ contract Ryfts is ERC20, Multivest {
         Phase storage phase = phases[1];
         if (phase.till <= block.timestamp) {
             require(phase.isFinished == true && isRefundAllowed == false);
-            owner.transfer(this.balance);
+            owner.transfer(address(this).balance);
         } else {
-            owner.transfer(this.balance);
+            owner.transfer(address(this).balance);
         }
     }
 
@@ -324,7 +324,7 @@ contract Ryfts is ERC20, Multivest {
 
         collectedEthers += _value;
 
-        Contribution(_address, _value, totalAmount);
+        emit Contribution(_address, _value, totalAmount);
         Transfer(this, _address, totalAmount);
         return true;
     }
@@ -357,7 +357,7 @@ contract Ryfts is ERC20, Multivest {
             holder.transfer(refundEthers);
         }
 
-        Refund(holder, refundEthers, refundTokens);
+        emit Refund(holder, refundEthers, refundTokens);
 
         return true;
     }
