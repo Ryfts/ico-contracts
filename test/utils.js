@@ -42,7 +42,7 @@ function receiptShouldFailed(result) {
 }
 
 function catchReceiptShouldFailed(err) {
-    if (err.message.indexOf("invalid opcode") == -1) {
+    if (err.message.indexOf("invalid opcode") !== -1) {
         throw err;
     }
 

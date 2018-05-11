@@ -3,9 +3,11 @@ pragma solidity 0.4.21;
 
 import "./ERC20.sol";
 import "./Multivest.sol";
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract Ryfts is ERC20, Multivest {
+    using SafeMath for uint256;
 
     uint256 public allocatedTokensForSale;
     uint256 public collectedEthers;
@@ -49,7 +51,7 @@ contract Ryfts is ERC20, Multivest {
         require(_reserveAmount <= _initialSupply);
 
         balanceOf[_reserveAccount] = _reserveAmount;
-        balanceOf[this] -= balanceOf[_reserveAccount];
+        balanceOf[this] = balanceOf[this].sub(balanceOf[_reserveAccount]);
 
         allocatedTokensForSale = balanceOf[this];
     
@@ -60,7 +62,7 @@ contract Ryfts is ERC20, Multivest {
         bool status = buy(msg.sender, block.timestamp, msg.value);
         require(status == true);
 
-        sentEthers[msg.sender] += msg.value;
+        sentEthers[msg.sender] = sentEthers[msg.sender].add(msg.value);
     }
 
     function setSalePhases(
@@ -140,11 +142,11 @@ contract Ryfts is ERC20, Multivest {
         Phase storage phase = phases[currentPhase];
 
         if (time - phase.since <= 10800) {// 3h since ico => reward 25%
-            return amount * 25 / 100;
+            return amount.mul(25).div(100);
         } else if (time - phase.since <= 21600) {// 6h since ico => reward 15%
-            return amount * 15 / 100;
+            return amount.mul(15).div(100);
         } else if (time - phase.since <= 32400) {// 9h since ico => reward 5%
-            return amount * 5 / 100;
+            return amount.mul(5).div(100);
         }
 
         return 0;
@@ -266,7 +268,7 @@ contract Ryfts is ERC20, Multivest {
             return 0;
         }
 
-        return _value * (uint256(10) ** decimals) / phase.price;
+        return _value.mul(uint256(10) ** decimals).div(phase.price);
     }
 
     // @return true if sale period is active
@@ -303,13 +305,13 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        uint256 totalAmount = amount + getBonusAmount(_time, amount);
+        uint256 totalAmount = amount.add(getBonusAmount(_time, amount));
 
         if (phase.allocatedTokens < phase.soldTokens + totalAmount) {
             return false;
         }
 
-        phase.soldTokens += amount;
+        phase.soldTokens = phase.soldTokens.add(amount);
 
         if (balanceOf[this] < totalAmount) {
             return false;
@@ -319,10 +321,10 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        balanceOf[this] -= totalAmount;
-        balanceOf[_address] += totalAmount;
+        balanceOf[this] = balanceOf[this].sub(totalAmount);
+        balanceOf[_address] = balanceOf[_address].add(totalAmount);
 
-        collectedEthers += _value;
+        collectedEthers = collectedEthers.add(_value);
 
         emit Contribution(_address, _value, totalAmount);
         emit Transfer(this, _address, totalAmount);
@@ -364,7 +366,7 @@ contract Ryfts is ERC20, Multivest {
 
     function transferUnusedTokensToICO(uint256 _unsoldPreICO) internal {
         Phase storage phase = phases[1];
-        phase.allocatedTokens += _unsoldPreICO;
+        phase.allocatedTokens = phase.allocatedTokens.add(_unsoldPreICO);
     }
 
     function checkValuePermission(uint8 _phaseId, uint256 _value) internal view returns (bool) {
