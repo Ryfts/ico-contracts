@@ -25,6 +25,8 @@ function receiptShouldFailed(result) {
     return new Promise(function(resolve, reject) {
         var receipt = web3.eth.getTransaction(result.tx);
 
+        conso
+
         if (result.receipt.gasUsed == gasToUse) {
             resolve();
         }
@@ -40,9 +42,11 @@ function receiptShouldFailed(result) {
 }
 
 function catchReceiptShouldFailed(err) {
-    if (err.message.indexOf("invalid opcode") !== -1) {
+    if (err.message.indexOf("invalid opcode") == -1) {
         throw err;
     }
+
+    return assert.isTrue(true);
 }
 
 function balanceShouldEqualTo(instance, address, expectedBalance, notCall) {

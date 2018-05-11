@@ -53,7 +53,7 @@ contract Ryfts is ERC20, Multivest {
 
         allocatedTokensForSale = balanceOf[this];
     
-        Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
+        emit Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
     }
 
     function() public payable {
@@ -325,7 +325,7 @@ contract Ryfts is ERC20, Multivest {
         collectedEthers += _value;
 
         emit Contribution(_address, _value, totalAmount);
-        Transfer(this, _address, totalAmount);
+        emit Transfer(this, _address, totalAmount);
         return true;
     }
     /* solhint-enable code-complexity */

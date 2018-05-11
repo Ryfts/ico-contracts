@@ -19,7 +19,7 @@ contract RyftsTest is Ryfts {
 
     }
 
-    function checkValuePermissionTest(uint8 _phaseId, uint256 _value) public returns (bool) {
+    function checkValuePermissionTest(uint8 _phaseId, uint256 _value) public view returns (bool) {
         return checkValuePermission(_phaseId, _value);
     }
 }
