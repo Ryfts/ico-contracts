@@ -25,7 +25,7 @@ function receiptShouldFailed(result) {
     return new Promise(function(resolve, reject) {
         var receipt = web3.eth.getTransaction(result.tx);
 
-        if(result.receipt.gasUsed == gasToUse) {
+        if (result.receipt.gasUsed == gasToUse) {
             resolve();
         }
         else {
@@ -40,7 +40,7 @@ function receiptShouldFailed(result) {
 }
 
 function catchReceiptShouldFailed(err) {
-    if (err.message.indexOf("invalid opcode") == -1) {
+    if (err.message.indexOf("invalid opcode") !== -1) {
         throw err;
     }
 }

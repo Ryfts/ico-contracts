@@ -35,16 +35,20 @@ contract('Multivest', function(accounts) {
                 instance = _instance;
             })
 
+            // Should fail to set multivest from non-owner
             .then(() => instance.setAllowedMultivest(accounts[0], {from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), false, "should be false"))
 
+            // Successfully set multivest from owner
             .then(() => instance.setAllowedMultivest(accounts[0]))
             .then(Utils.receiptShouldSucceed)
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
+
+            /* Multiple times repeat same process */
 
             .then(() => instance.setAllowedMultivest(accounts[2], {from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
