@@ -2,11 +2,11 @@ var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic = '';
 var infuraToken = '';
 
-if (mnemonic !== '') {
+if (mnemonic === '') {
   throw new Error("Enter mnemonic");
 }
 
-if (infuraToken !== '') {
+if (infuraToken === '') {
   throw new Error("Enter infura token credentials");
 }
 
