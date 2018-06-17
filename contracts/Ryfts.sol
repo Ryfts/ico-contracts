@@ -179,6 +179,9 @@ contract Ryfts is ERC20, Multivest {
 
     function setPeriod(uint8 _phaseId, uint256 _since, uint256 _till) public onlyOwner {
         require(phases.length > _phaseId);
+        // restrict changing phase after it begins
+        require(now < phase.since);
+
         Phase storage phase = phases[_phaseId];
         phase.since = _since;
         phase.till = _till;
