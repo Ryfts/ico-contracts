@@ -16,14 +16,14 @@ contract ERC20 is Ownable {
 
     uint8 public decimals;
 
-    uint256 public totalSupply;
+    uint256 public totalSupply_;
 
     bool public locked;
 
     uint256 public creationBlock;
 
     /* This creates an array with all balances */
-    mapping (address => uint256) public balanceOf;
+    mapping (address => uint256) public balances;
 
     mapping (address => mapping (address => uint256)) public allowance;
 
@@ -46,12 +46,14 @@ contract ERC20 is Ownable {
         bool transferAllSupplyToOwner,
         bool _locked
     ) public {
-        totalSupply = initialSupply;
+        totalSupply_ = initialSupply;
 
         if (transferAllSupplyToOwner) {
-            balanceOf[msg.sender] = initialSupply;
+            balances[msg.sender] = initialSupply;
+            emit Transfer(address(0), msg.sender, initialSupply);
         } else {
-            balanceOf[this] = initialSupply;
+            balances[this] = initialSupply;
+            emit Transfer(address(0), this, initialSupply);
         }
 
         name = tokenName;
@@ -64,13 +66,23 @@ contract ERC20 is Ownable {
         creationBlock = block.number;
     }
 
+    function balanceOf(address _owner) public view returns (uint256 balance) {
+        return balances[_owner];
+    }
+
+    function totalSupply() public view returns (uint256 totalSupply) {
+        return totalSupply_;
+    }
+
     /* Send coins */
-    function transfer(address _to, uint256 _value) public onlyPayloadSize(2) {
+    function transfer(address _to, uint256 _value) public onlyPayloadSize(2) returns (bool success) {
         require(locked == false);
 
         bool status = transferInternal(msg.sender, _to, _value);
 
         require(status == true);
+
+        return status;
     }
 
     /* Approve */
@@ -120,8 +132,8 @@ contract ERC20 is Ownable {
             return false;
         }
 
-        balanceOf[_from] -= _value;
-        balanceOf[_to] += _value;
+        balances[_from] -= _value;
+        balances[_to] += _value;
 
         emit Transfer(_from, _to, _value);
 

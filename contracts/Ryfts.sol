@@ -51,8 +51,8 @@ contract Ryfts is ERC20, Multivest {
         standard = "Ryfts 0.1";
         require(_reserveAmount <= _initialSupply);
 
-        balanceOf[_reserveAccount] = _reserveAmount;
-        balanceOf[this] = balanceOf[this].sub(balanceOf[_reserveAccount]);
+        balances[_reserveAccount] = _reserveAmount;
+        balances[this] = balanceOf[this].sub(balanceOf[_reserveAccount]);
 
         allocatedTokensForSale = balanceOf[this];
     
@@ -203,6 +203,9 @@ contract Ryfts is ERC20, Multivest {
         if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf[this] == 0) {
             if (_phaseId == 1) {
                 balanceOf[this] = 0;
+                uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
+                emit Transfer(this, address(0), unsoldTokens);
+
                 if (phase.soldTokens >= phase.goalMinSoldTokens) {
                     isRefundAllowed = false;
                 } else {
@@ -325,8 +328,8 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        balanceOf[this] = balanceOf[this].sub(totalAmount);
-        balanceOf[_address] = balanceOf[_address].add(totalAmount);
+        balances[this] = balanceOf[this].sub(totalAmount);
+        balances[_address] = balanceOf[_address].add(totalAmount);
 
         collectedEthers = collectedEthers.add(_value);
 
@@ -356,7 +359,7 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        balanceOf[holder] = 0;
+        balances[holder] = 0;
         sentEthers[holder] = 0;
 
         if (refundEthers > 0) {
