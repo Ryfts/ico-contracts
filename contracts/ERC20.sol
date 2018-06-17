@@ -32,8 +32,8 @@ contract ERC20 is Ownable {
 
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
-    modifier onlyPayloadSize(uint numwords) {
-        assert(msg.data.length == numwords * 32 + 4);
+    modifier onlyPayloadSize(uint size) {
+        assert(msg.data.length >= size + 4);
         _;
     }
 
