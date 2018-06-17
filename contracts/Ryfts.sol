@@ -24,6 +24,7 @@ contract Ryfts is ERC20, Multivest {
         uint256 since;
         uint256 till;
         uint256 allocatedTokens;
+        // min. goal of tokens sold including bonuses
         uint256 goalMinSoldTokens;
         uint256 minContribution;
         uint256 maxContribution;
@@ -314,7 +315,7 @@ contract Ryfts is ERC20, Multivest {
             return false;
         }
 
-        phase.soldTokens = phase.soldTokens.add(amount);
+        phase.soldTokens = phase.soldTokens.add(totalAmount);
 
         if (balanceOf[this] < totalAmount) {
             return false;
