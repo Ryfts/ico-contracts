@@ -1,4 +1,4 @@
-var Ryfts = artifacts.require('./Ryfts.sol'),
+var Ryfts = artifacts.require('./Ryfts.sol');
 var RyftsTest = artifacts.require('./test/RyftsTest.sol'),
     BigNumber = require('bignumber.js'),
     Utils = require("./utils");
