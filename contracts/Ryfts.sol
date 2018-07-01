@@ -15,6 +15,8 @@ contract Ryfts is Token, Multivest {
     bool public whitelistActive;
     bool public phasesSet;
 
+    bool public locked;
+
     mapping (address => uint256) public sentEthers;
 
     Phase[] public phases;
@@ -45,17 +47,20 @@ contract Ryfts is Token, Multivest {
         bool _locked
     )
         public
-        Token(_initialSupply, _tokenName, 18, _tokenSymbol, false, _locked)
+        Token(_initialSupply, _tokenName, 18, _tokenSymbol, false)
         Multivest(_multivestMiddleware)
     {
         require(_reserveAmount <= _initialSupply);
 
-        balances[_reserveAccount] = _reserveAmount;
-        balances[this] = balanceOf[this].sub(balanceOf[_reserveAccount]);
+        // lock sale
+        locked = _locked;
 
-        allocatedTokensForSale = balanceOf[this];
+        balances[_reserveAccount] = _reserveAmount;
+        balances[this] = balanceOf(this).sub(balanceOf(_reserveAccount));
+
+        allocatedTokensForSale = balanceOf(this);
     
-        emit Transfer(this, _reserveAccount, balanceOf[_reserveAccount]);
+        emit Transfer(this, _reserveAccount, balanceOf(_reserveAccount));
     }
 
     function() public payable {
@@ -201,9 +206,9 @@ contract Ryfts is Token, Multivest {
 
         uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
 
-        if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf[this] == 0) {
+        if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf(this) == 0) {
             if (_phaseId == 1) {
-                balanceOf[this] = 0;
+                balances[this] = 0;
                 emit Transfer(this, address(0), unsoldTokens);
 
                 if (phase.soldTokens >= phase.goalMinSoldTokens) {
@@ -319,16 +324,16 @@ contract Ryfts is Token, Multivest {
 
         phase.soldTokens = phase.soldTokens.add(totalAmount);
 
-        if (balanceOf[this] < totalAmount) {
+        if (balanceOf(this) < totalAmount) {
             return false;
         }
 
-        if (balanceOf[_address] + totalAmount < balanceOf[_address]) {
+        if (balanceOf(_address) + totalAmount < balanceOf(_address)) {
             return false;
         }
 
-        balances[this] = balanceOf[this].sub(totalAmount);
-        balances[_address] = balanceOf[_address].add(totalAmount);
+        balances[this] = balanceOf(this).sub(totalAmount);
+        balances[_address] = balanceOf(_address).add(totalAmount);
 
         collectedEthers = collectedEthers.add(_value);
 
@@ -352,7 +357,7 @@ contract Ryfts is Token, Multivest {
         Phase storage phase = phases[1];
         require(phase.isFinished == true && isRefundAllowed == true);
         uint256 refundEthers = sentEthers[holder];
-        uint256 refundTokens = balanceOf[holder];
+        uint256 refundTokens = balanceOf(holder);
 
         if (refundEthers == 0 && refundTokens == 0) {
             return false;

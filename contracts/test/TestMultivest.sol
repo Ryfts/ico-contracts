@@ -11,7 +11,6 @@ contract TestMultivest is Multivest, Token {
             "TEST",
             18,
             "TST",
-            false,
             false
         )
         Multivest(allowedMultivest)

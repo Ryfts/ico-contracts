@@ -19,16 +19,13 @@ contract Token is StandardToken {
 
     uint256 public creationBlock;
 
-    bool public locked;
-
     /* Initializes contract with initial supply tokens to the creator of the contract */
     function Token(
         uint256 initialSupply,
         string tokenName,
         uint8 decimalUnits,
         string tokenSymbol,
-        bool transferAllSupplyToOwner,
-        bool _locked
+        bool transferAllSupplyToOwner
     ) public {
         totalSupply_ = initialSupply;
 
@@ -46,7 +43,29 @@ contract Token is StandardToken {
         decimals = decimalUnits;
         // Set creation block
         creationBlock = block.number;
-        // lock token
-        locked = _locked;
     }
+
+    function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
+        if (_value == 0) {
+            emit Transfer(_from, _to, 0);
+
+            return true;
+        }
+
+        if (balances[_from] < _value) {
+            return false;
+        }
+
+        if (balances[_to] + _value <= balances[_to]) {
+            return false;
+        }
+
+        balances[_from] -= _value;
+        balances[_to] += _value;
+
+        emit Transfer(_from, _to, _value);
+
+        return true;
+    }
+
 }
