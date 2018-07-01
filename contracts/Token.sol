@@ -68,4 +68,18 @@ contract Token is StandardToken {
         return true;
     }
 
+    /* A contract attempts to get the coins */
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+        if (allowed[_from][msg.sender] < _value) {
+            return false;
+        }
+
+        bool _success = transferInternal(_from, _to, _value);
+
+        if (_success) {
+            allowed[_from][msg.sender] -= _value;
+        }
+
+        return _success;
+    }
 }
