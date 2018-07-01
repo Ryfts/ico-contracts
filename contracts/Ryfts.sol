@@ -1,12 +1,12 @@
 pragma solidity 0.4.21;
 
 
-import "./ERC20.sol";
+import "./Token.sol";
 import "./Multivest.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
-contract Ryfts is ERC20, Multivest {
+contract Ryfts is Token, Multivest {
     using SafeMath for uint256;
 
     uint256 public allocatedTokensForSale;
@@ -45,10 +45,9 @@ contract Ryfts is ERC20, Multivest {
         bool _locked
     )
         public
-        ERC20(_initialSupply, _tokenName, 18, _tokenSymbol, false, _locked)
+        Token(_initialSupply, _tokenName, 18, _tokenSymbol, false, _locked)
         Multivest(_multivestMiddleware)
     {
-        standard = "Ryfts 0.1";
         require(_reserveAmount <= _initialSupply);
 
         balances[_reserveAccount] = _reserveAmount;
@@ -200,10 +199,11 @@ contract Ryfts is ERC20, Multivest {
             return true;
         }
 
+        uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
+
         if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf[this] == 0) {
             if (_phaseId == 1) {
                 balanceOf[this] = 0;
-                uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
                 emit Transfer(this, address(0), unsoldTokens);
 
                 if (phase.soldTokens >= phase.goalMinSoldTokens) {
@@ -213,7 +213,6 @@ contract Ryfts is ERC20, Multivest {
                 }
             }
             if (_phaseId == 0) {
-                uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
                 if (unsoldTokens > 0) {
                     transferUnusedTokensToICO(unsoldTokens);
                     phase.allocatedTokens = phase.soldTokens;

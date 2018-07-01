@@ -47,8 +47,6 @@ contract('RyftsICO', function (accounts) {
             icoTill,
             new BigNumber("200000000000000")
         )
-            .then(() => instance.standard.call())
-            .then((result) => assert.equal(result.valueOf(), "Ryfts 0.1", "standard is not equal"))
             .then(() => instance.name.call())
             .then((result) => assert.equal(result.valueOf(), "Ryfts", "token name is not equal"))
             .then(() => instance.symbol.call())
