@@ -204,7 +204,7 @@ contract Ryfts is Token, Multivest {
             return true;
         }
 
-        uint256 unsoldTokens = phase.allocatedTokens - phase.soldTokens;
+        uint256 unsoldTokens = phase.allocatedTokens.sub(phase.soldTokens);
 
         if (block.timestamp > phase.till || phase.allocatedTokens == phase.soldTokens || balanceOf(this) == 0) {
             if (_phaseId == 1) {
