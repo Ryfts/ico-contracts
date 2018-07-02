@@ -68,7 +68,6 @@ contract Token is StandardToken {
         return true;
     }
 
-    /* A contract attempts to get the coins */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
         if (allowed[_from][msg.sender] < _value) {
             return false;
@@ -77,7 +76,8 @@ contract Token is StandardToken {
         bool _success = transferInternal(_from, _to, _value);
 
         if (_success) {
-            allowed[_from][msg.sender] -= _value;
+            allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+            emit Transfer(_from, _to, _value);
         }
 
         return _success;
