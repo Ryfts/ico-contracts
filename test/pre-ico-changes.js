@@ -177,7 +177,6 @@ contract('pre-ICO', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
             .then(() => makeTransaction(instance, web3.toWei('2', 'ether')))
             .then(Utils.receiptShouldSucceed)
-            //2*10^18 * (10 ^ 8) / 333333333333
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("60000000000000000600").valueOf()))
             .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether'), from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
@@ -585,10 +584,10 @@ contract('pre-ICO', function (accounts) {
         var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
         await instance.setSalePhases(
-          new BigNumber("33333333333333333"),
+          new BigNumber("333333333333"),
           preIcoSince,
           preIcoTill,
-          new BigNumber(preicoAmount),  // 700000000000000000000000
+          new BigNumber("600000000000600").mul(10000000000),
           0,
           0,
           new BigNumber("33333333333333333"),
@@ -603,10 +602,11 @@ contract('pre-ICO', function (accounts) {
         await instance.finished(0);
         let isActive = await instance.isActive(0);
         assert.equal(isActive.valueOf(), true, "isActive is not equal");
-        await instance.multivestBuy(accounts[0], web3.toWei('1', 'ether'))
+        await instance.multivestBuy(accounts[0], web3.toWei('2', 'ether'))
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(
-              instance, accounts[0], new BigNumber(web3.toWei('1', 'ether')).div("33333333333333333").mul(precision).valueOf()
+              //2*10^18 * (10 ^ 18) / 333333333333
+              instance, accounts[0], new BigNumber(web3.toWei('2', 'ether')).div("333333333333").mul(precision).valueOf()
             ));
         await instance.finished(0);
         isActive = await instance.isActive(0);

@@ -67,19 +67,4 @@ contract Token is StandardToken {
 
         return true;
     }
-
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        if (allowed[_from][msg.sender] < _value) {
-            return false;
-        }
-
-        bool _success = transferInternal(_from, _to, _value);
-
-        if (_success) {
-            allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
-            emit Transfer(_from, _to, _value);
-        }
-
-        return _success;
-    }
 }

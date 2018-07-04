@@ -95,18 +95,6 @@ contract('Token', function(accounts) {
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 0))
             .then(function() {
-                return instance.transferFrom.call(accounts[0], accounts[1], 1001, {from: accounts[1]});
-            })
-            .then(function(result) {
-                assert.equal(result.valueOf(), false, "transferFrom succeed");
-            })
-            .then(function() {
-                return instance.transferFrom(accounts[0], accounts[1], 1001, {from: accounts[1]});
-            })
-            .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 0))
-            .then(function() {
                 return instance.transferFrom.call(accounts[0], accounts[1], 1000, {from: accounts[1]});
             })
             .then(function(result) {
@@ -144,33 +132,22 @@ contract('Token', function(accounts) {
             .then(function() {
                 return instance.approve(accounts[1], 2000000);
             })
-            .then(Utils.receiptShouldSucceed)
+            .catch(Utils.catchReceiptShouldFailed)
+            .then(function() {
+                return instance.approve(accounts[1], 1000);
+            })
             .then(function() {
                 return instance.allowance.call(accounts[0], accounts[1]);
             })
             .then(function(result) {
-                assert.equal(result.valueOf(), 2000000, "allowance is not equal");
+                assert.equal(result.valueOf(), 1000, "allowance is not equal");
             })
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
+            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000))
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 0))
             .then(function() {
-                return instance.transferFrom.call(accounts[0], accounts[1], 1000001, {from: accounts[1]});
+                return instance.transferFrom.call(accounts[0], accounts[1], 1001, {from: accounts[1]});
             })
-            .then(function(result) {
-                assert.equal(result.valueOf(), false, "transferFrom succeed");
-            })
-            .then(function() {
-                return instance.transferFrom(accounts[0], accounts[1], 1000001, {from: accounts[1]});
-            })
-            .then(Utils.receiptShouldSucceed)
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], 1000000))
-            .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 0))
-            .then(function() {
-                return instance.allowance.call(accounts[0], accounts[1]);
-            })
-            .then(function(result) {
-                assert.equal(result.valueOf(), 2000000, "allowance is not equal");
-            });
+            .catch(Utils.catchReceiptShouldFailed);
     });
 
     it("try to transfer tokens to itself", function() {
