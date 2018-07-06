@@ -341,17 +341,6 @@ contract Ryfts is Token, Multivest {
         emit Transfer(this, _address, totalAmount);
         return true;
     }
-    /* solhint-enable code-complexity */
-
-    function transferInternal(address _from, address _to, uint256 _value) internal returns (bool success) {
-        Phase storage phase = phases[1];
-        if (block.timestamp > phase.since) {
-            require(false == isActive(1));
-            require(phase.isFinished == true && isRefundAllowed == false);
-        }
-
-        return super.transferInternal(_from, _to, _value);
-    }
 
     function refundInternal(address holder) internal returns (bool success) {
         Phase storage phase = phases[1];

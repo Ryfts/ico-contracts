@@ -18,6 +18,6 @@ contract TestMultivest is Multivest, Token {
     }
 
     function buy(address _address, uint256, uint256 value) internal returns (bool) {
-        return transferInternal(this, _address, value);
+        return transfer(_address, value);
     }
 }
