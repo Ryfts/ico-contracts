@@ -64,10 +64,7 @@ contract Ryfts is Token, Multivest {
     }
 
     function() public payable {
-        bool status = buy(msg.sender, block.timestamp, msg.value);
-        require(status == true);
-
-        sentEthers[msg.sender] = sentEthers[msg.sender].add(msg.value);
+        buyTokens();
     }
 
     function setSalePhases(
@@ -297,6 +294,13 @@ contract Ryfts is Token, Multivest {
         require(phases.length > _phaseId);
         Phase storage phase = phases[_phaseId];
         return block.timestamp >= phase.since && block.timestamp <= phase.till;
+    }
+
+    function buyTokens() public payable {
+        bool status = buy(msg.sender, block.timestamp, msg.value);
+        require(status == true);
+
+        sentEthers[msg.sender] = sentEthers[msg.sender].add(msg.value);
     }
 
     /* solhint-disable code-complexity */
