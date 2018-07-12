@@ -389,7 +389,7 @@ contract Ryfts is Token, Multivest {
             return false;
         }
 
-        return true;
+        return false;
     }
 
 }
