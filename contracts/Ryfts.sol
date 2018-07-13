@@ -276,6 +276,14 @@ contract Ryfts is Token, Multivest {
             return 0;
         }
 
+        // Check if total investment in phase is lower than max. amount of contribution
+        if (phase.maxContribution != 0 && sentEthers[_address] != 0) {
+            uint allTimeInvestment = sentEthers[_address].add(_value);
+            if (allTimeInvestment > phase.maxContribution) {
+                return 0;
+            }
+        }
+
         return _value.mul(uint256(10) ** decimals).div(phase.price);
     }
 
