@@ -1,4 +1,5 @@
-var Ryfts = artifacts.require('./Ryfts.sol'),
+var Ryfts = artifacts.require('./Ryfts.sol');
+var RyftsTest = artifacts.require('./test/RyftsTest.sol'),
     BigNumber = require('bignumber.js'),
     Utils = require("./utils");
 
@@ -44,7 +45,7 @@ contract('pre-ICO', function (accounts) {
         )
     });
 
-    /*it('create contract, buy tokens with correct sign address, get balance, check price', async function () {
+    it('create contract, buy tokens with correct sign address, get balance, check price', async function () {
         var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
         var icoTill = parseInt(new Date().getTime() / 1000) + 3600*3;
         var preIcoSince = parseInt(new Date().getTime() / 1000 - 200);
@@ -176,7 +177,6 @@ contract('pre-ICO', function (accounts) {
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
             .then(() => makeTransaction(instance, web3.toWei('2', 'ether')))
             .then(Utils.receiptShouldSucceed)
-            //2*10^18 * (10 ^ 8) / 333333333333
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[0], new BigNumber("60000000000000000600").valueOf()))
             .then(() => instance.sendTransaction({value: web3.toWei('2', 'ether'), from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
@@ -366,7 +366,7 @@ contract('pre-ICO', function (accounts) {
         assert.equal(bonusAmount.valueOf(), 0, "bonus is not equal")
         bonusAmount = await  instance.getBonusAmount.call(after9Hours, 9900908900)
         assert.equal(bonusAmount.valueOf(), 0, "bonus is not equal")
-    });*/
+    });
 
     it('create contract, set new Price, multivest buy', async function () {
         var icoSince = parseInt(new Date().getTime() / 1000)+ 3600*2;
@@ -584,10 +584,10 @@ contract('pre-ICO', function (accounts) {
         var preIcoTill = parseInt(new Date().getTime() / 1000) + 3600;
 
         await instance.setSalePhases(
-          new BigNumber("33333333333333333"),
+          new BigNumber("333333333333"),
           preIcoSince,
           preIcoTill,
-          sellAmount,
+          new BigNumber("600000000000600").mul(10000000000),
           0,
           0,
           new BigNumber("33333333333333333"),
@@ -595,6 +595,7 @@ contract('pre-ICO', function (accounts) {
           icoTill,
           new BigNumber("20000000000000000000000")
         );
+
         await instance.setAllowedMultivest(accounts[0])
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"));
@@ -604,7 +605,8 @@ contract('pre-ICO', function (accounts) {
         await instance.multivestBuy(accounts[0], web3.toWei('2', 'ether'))
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(
-              instance, accounts[0], new BigNumber(web3.toWei('2', 'ether')).div("33333333333333333").mul(precision).valueOf()
+              //2*10^18 * (10 ^ 18) / 333333333333
+              instance, accounts[0], new BigNumber(web3.toWei('2', 'ether')).div("333333333333").mul(precision).valueOf()
             ));
         await instance.finished(0);
         isActive = await instance.isActive(0);
@@ -679,7 +681,7 @@ contract('pre-ICO', function (accounts) {
             new BigNumber("33333333333333"),
             preIcoSince,
             preIcoTill,
-            new BigNumber("27000000000027000000000000"),
+            new BigNumber(preicoAmount),
             0,
             0,
             new BigNumber("33333333333333"),
@@ -696,7 +698,7 @@ contract('pre-ICO', function (accounts) {
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(
               //2*10^18 / 111111111111
-              instance, accounts[0], 2 / 11111111111111 * precision)
+              instance, accounts[0], 2 * precision / 11111111111111 * precision)
             )
         await instance.multivestBuy(accounts[0], web3.toWei('2.5', 'ether'))
             .then(Utils.receiptShouldFailed)

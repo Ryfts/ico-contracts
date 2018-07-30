@@ -11,8 +11,8 @@ contract Multivest is Ownable {
     event Contribution(address _holder, uint256 value, uint256 tokens);
     
     /* modifier */
-    modifier onlyPayloadSize(uint numwords) {
-        assert(msg.data.length == numwords * 32 + 4);
+    modifier onlyPayloadSize(uint size) {
+        assert(msg.data.length >= size + 4);
         _;
     }
 
