@@ -35,16 +35,20 @@ contract('Multivest', function(accounts) {
                 instance = _instance;
             })
 
+            // Should fail to set multivest from non-owner
             .then(() => instance.setAllowedMultivest(accounts[0], {from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
             .catch(Utils.catchReceiptShouldFailed)
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), false, "should be false"))
 
+            // Successfully set multivest from owner
             .then(() => instance.setAllowedMultivest(accounts[0]))
             .then(Utils.receiptShouldSucceed)
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
+
+            /* Multiple times repeat same process */
 
             .then(() => instance.setAllowedMultivest(accounts[2], {from: accounts[1]}))
             .then(Utils.receiptShouldFailed)
@@ -80,7 +84,7 @@ contract('Multivest', function(accounts) {
             .then((result) => assert.equal(result.valueOf(), false, "should be false"))
     });
 
-    it("set multivest & buyFor", function() {
+    it("set multivest & buyFor", async function() {
         var instance;
 
         return TestMultivest.new(accounts[1])
@@ -93,7 +97,7 @@ contract('Multivest', function(accounts) {
             .then(() => instance.allowedMultivests.call(accounts[0]))
             .then((result) => assert.equal(result.valueOf(), true, "should be true"))
 
-            .then(() => instance.multivestBuy(accounts[1], 10000))
+            await instance.multivestBuy(accounts[1], 10000)
             .then(Utils.receiptShouldSucceed)
             .then(() => Utils.balanceShouldEqualTo(instance, accounts[1], 10000))
 
