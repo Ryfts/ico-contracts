@@ -25,6 +25,13 @@ module.exports = {
         return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/" + infuraToken);
       },
       network_id: 3
-    }
+    },
+
+    mainnet: {
+          provider: function() {
+            return new HDWalletProvider(mnemonic, "https://mainnet.infura.io/" + infuraToken);
+          },
+          network_id: 1
+        }
   }
 };

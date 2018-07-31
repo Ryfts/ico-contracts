@@ -18,6 +18,8 @@
     "precommit": "npm run lint && npm run test && npm run coverage",
     "pretest": "node ./node_modules/ganache-cli/build/cli.node.js > /dev/null 2>&1 &",
     "test": "node ./node_modules/truffle/build/cli.bundled.js test",
+    "deploy-ropsten": "node ./node_modules/truffle/build/cli.bundled.js migrate --network ropsten",
+    "deploy-mainnet": "node ./node_modules/truffle/build/cli.bundled.js migrate --network mainnet",
     "posttest": "ps | grep ethereumjs-testrpc | grep -v grep | awk '{print $1}' | xargs -J % kill %",
     "coverage": "./node_modules/.bin/solidity-coverage",
     "lint": "node ./node_modules/solhint/solhint.js contracts/*.sol"
